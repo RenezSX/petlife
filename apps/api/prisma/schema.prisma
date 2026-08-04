@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("RECEPTIONIST")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Tutor {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  animals   Animal[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Animal {
+  id               String            @id @default(cuid())
+  name             String
+  species          String
+  breed            String?
+  birthDate        DateTime?
+  weight           Float?
+  tutorId          String
+  tutor            Tutor             @relation(fields: [tutorId], references: [id])
+  hospitalizations Hospitalization[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Bed {
+  id               String            @id @default(cuid())
+  name             String            @unique
+  sector           String
+  active           Boolean           @default(true)
+  hospitalizations Hospitalization[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Hospitalization {
+  id              String           @id @default(cuid())
+  animalId        String
+  animal          Animal           @relation(fields: [animalId], references: [id])
+  bedId           String?
+  bed             Bed?             @relation(fields: [bedId], references: [id])
+  status          String           @default("HOSPITALIZED")
+  priority        String           @default("NORMAL")
+  reason          String
+  diagnosis       String?
+  admittedAt      DateTime         @default(now())
+  dischargedAt    DateTime?
+  procedures      Procedure[]
+  medicationDoses MedicationDose[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([status])
+  @@index([admittedAt])
+}
+
+model Procedure {
+  id                String          @id @default(cuid())
+  hospitalizationId String
+  hospitalization   Hospitalization @relation(fields: [hospitalizationId], references: [id])
+  title             String
+  scheduledAt       DateTime
+  completedAt       DateTime?
+  createdAt         DateTime        @default(now())
+}
+
+model MedicationDose {
+  id                String          @id @default(cuid())
+  hospitalizationId String
+  hospitalization   Hospitalization @relation(fields: [hospitalizationId], references: [id])
+  medication        String
+  scheduledAt       DateTime
+  administeredAt    DateTime?
+  createdAt         DateTime        @default(now())
+}
