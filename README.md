@@ -1,27 +1,23 @@
-# PetLife — Fase 1 Final
+# PetLife — Fase 2
 
-Base funcional de um sistema de gestão e internação veterinária, com frontend e backend separados e banco SQLite local.
+Sistema de gestão veterinária com autenticação, dashboard, cadastro de tutores e cadastro de animais.
 
-## O que está incluído
+## Funcionalidades
 
-- React + Vite + TypeScript
-- Node.js + Express + TypeScript
-- Prisma ORM com SQLite
-- Login com JWT
-- Rotas protegidas
-- Dashboard conectado ao banco
-- Dados demonstrativos via seed
-- Interface responsiva nas cores verde e laranja
-- Execução sem Docker ou PostgreSQL
+- Login JWT e rotas protegidas
+- Dashboard de internação
+- Tutores: cadastro, edição, busca, paginação, filtros, inativação e reativação
+- Animais: cadastro, edição, busca, filtros, vínculo com tutor, dados clínicos, foto por URL, inativação e reativação
+- Validação de dados no backend
+- SQLite local, sem Docker
+- Interface responsiva em verde e laranja
 
 ## Requisitos
 
 - Node.js 20 ou 22 LTS recomendado
-- npm 10 ou superior
+- npm 10+
 
 ## Instalação
-
-Abra o PowerShell nesta pasta e execute:
 
 ```powershell
 npm install
@@ -31,42 +27,31 @@ npm run db:seed
 npm run dev
 ```
 
-Caso a porta 5173 esteja ocupada, o Vite usará a próxima porta disponível. A API aceita automaticamente origens locais durante o desenvolvimento.
+Acesse o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 
-## Acessos
-
-- Frontend: `http://localhost:5173`
-- API: `http://localhost:3333`
-- Verificação da API: `http://localhost:3333/health`
-
-### Credenciais iniciais
+## Credenciais iniciais
 
 - E-mail: `admin@petlife.local`
 - Senha: `Admin@123`
 
-## Banco de dados
+## Banco
 
-O SQLite é criado em:
+O SQLite é criado em `apps/api/prisma/dev.db`.
 
-```text
-apps/api/prisma/dev.db
-```
-
-Para recriar o banco do zero, pare o projeto, exclua `apps/api/prisma/dev.db` e `apps/api/prisma/migrations`, então execute:
+## Comandos úteis
 
 ```powershell
-npm run db:migrate
-npm run db:seed
-```
-
-## Comandos
-
-```powershell
-npm run dev
-npm run build
 npm run typecheck
+npm run build
 npm run lint
-npm run db:generate
-npm run db:migrate
-npm run db:seed
+```
+
+Se o comando conjunto de desenvolvimento falhar no Windows, use dois terminais:
+
+```powershell
+npm --prefix apps/api run dev
+```
+
+```powershell
+npm --prefix apps/web run dev
 ```

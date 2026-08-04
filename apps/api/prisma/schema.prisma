@@ -21,25 +21,49 @@ model User {
 model Tutor {
   id        String   @id @default(cuid())
   name      String
+  cpf       String?  @unique
   phone     String
+  whatsapp  String?
   email     String?
+  address   String?
+  notes     String?
+  active    Boolean  @default(true)
   animals   Animal[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([active])
 }
 
 model Animal {
-  id               String            @id @default(cuid())
-  name             String
-  species          String
-  breed            String?
-  birthDate        DateTime?
-  weight           Float?
-  tutorId          String
-  tutor            Tutor             @relation(fields: [tutorId], references: [id])
-  hospitalizations Hospitalization[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                    String            @id @default(cuid())
+  name                  String
+  species               String
+  breed                 String?
+  sex                   String?
+  birthDate             DateTime?
+  approximateAge        String?
+  weight                Float?
+  color                 String?
+  microchip             String?           @unique
+  neutered              Boolean           @default(false)
+  allergies             String?
+  previousDiseases      String?
+  continuousMedications String?
+  notes                 String?
+  photoUrl               String?
+  active                 Boolean           @default(true)
+  tutorId               String
+  tutor                 Tutor             @relation(fields: [tutorId], references: [id])
+  hospitalizations      Hospitalization[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([name])
+  @@index([species])
+  @@index([tutorId])
+  @@index([active])
 }
 
 model Bed {
