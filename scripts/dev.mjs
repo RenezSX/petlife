@@ -1,22 +1,19 @@
-import { spawn } from "node:child_process";
+import { spawn } from 'node:child_process';
 
-const api = spawn("npm.cmd", ["run", "dev"], {
-  cwd: "./apps/api",
-  stdio: "inherit",
-  shell: true,
-});
-
-const web = spawn("npm.cmd", ["run", "dev"], {
-  cwd: "./apps/web",
-  stdio: "inherit",
-  shell: true,
-});
-
-function close() {
-  api.kill();
-  web.kill();
-  process.exit();
+function run(prefix) {
+  if (process.platform === 'win32') {
+    return spawn('cmd.exe', ['/d', '/s', '/c', `npm --prefix ${prefix} run dev`], {
+      stdio: 'inherit',
+      windowsHide: false,
+    });
+  }
+  return spawn('npm', ['--prefix', prefix, 'run', 'dev'], { stdio: 'inherit' });
 }
 
-process.on("SIGINT", close);
-process.on("SIGTERM", close);
+const commands = [run('apps/api'), run('apps/web')];
+function stop() { for (const command of commands) command.kill('SIGTERM'); }
+process.on('SIGINT', stop);
+process.on('SIGTERM', stop);
+commands.forEach((command) => command.on('exit', (code) => {
+  if (code && code !== 0) process.exitCode = code;
+}));
