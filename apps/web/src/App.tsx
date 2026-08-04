@@ -4,6 +4,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { TutorsPage } from './pages/TutorsPage';
 import { AnimalsPage } from './pages/AnimalsPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { HospitalizationsPage } from './pages/HospitalizationsPage';
+import { BedsPage } from './pages/BedsPage';
 
 export default function App() {
   return (
@@ -16,10 +18,7 @@ export default function App() {
           <Route path="/tutores" element={<TutorsPage />} />
           <Route path="/animais" element={<AnimalsPage />} />
 
-          <Route
-            path="/internacoes"
-            element={<PlaceholderPage title="Internações" />}
-          />
+          <Route path="/internacoes" element={<HospitalizationsPage />} />
 
           <Route
             path="/procedimentos"
@@ -31,10 +30,7 @@ export default function App() {
             element={<PlaceholderPage title="Medicações" />}
           />
 
-          <Route
-            path="/leitos"
-            element={<PlaceholderPage title="Leitos" />}
-          />
+          <Route path="/leitos" element={<BedsPage />} />
 
           <Route
             path="/profissionais"

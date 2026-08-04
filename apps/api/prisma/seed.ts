@@ -43,8 +43,17 @@ async function main() {
   const bed = await prisma.bed.upsert({
     where: { name: 'UTI-01' },
     update: {},
-    create: { name: 'UTI-01', sector: 'UTI' }
+    create: { name: 'UTI-01', sector: 'UTI', notes: 'Monitoramento intensivo' }
   });
+
+  for (const item of [
+    { name: 'INT-01', sector: 'Internação' },
+    { name: 'INT-02', sector: 'Internação' },
+    { name: 'OBS-01', sector: 'Observação' },
+    { name: 'ISO-01', sector: 'Isolamento' }
+  ]) {
+    await prisma.bed.upsert({ where: { name: item.name }, update: {}, create: item });
+  }
 
   const existing = await prisma.hospitalization.findFirst({
     where: { animalId: animal.id, dischargedAt: null }
@@ -58,7 +67,10 @@ async function main() {
         status: 'CRITICAL',
         priority: 'HIGH',
         reason: 'Monitoramento pós-operatório',
-        diagnosis: 'Recuperação após procedimento abdominal'
+        diagnosis: 'Recuperação após procedimento abdominal',
+        veterinarian: 'Dra. Camila Souza',
+        notes: 'Paciente responsivo e em monitoramento contínuo',
+        expectedDischargeAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
       }
     });
 
@@ -79,7 +91,7 @@ async function main() {
     });
   }
 
-  console.log('Banco SQLite preparado. Usuário: admin@petlife.local / Admin@123');
+  console.log('Banco SQLite preparado para a Fase 3.');
 }
 
 main()

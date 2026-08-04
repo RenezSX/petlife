@@ -70,10 +70,14 @@ model Bed {
   id               String            @id @default(cuid())
   name             String            @unique
   sector           String
+  notes            String?
   active           Boolean           @default(true)
   hospitalizations Hospitalization[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+
+  @@index([sector])
+  @@index([active])
 }
 
 model Hospitalization {
@@ -86,14 +90,21 @@ model Hospitalization {
   priority        String           @default("NORMAL")
   reason          String
   diagnosis       String?
+  veterinarian    String?
+  notes            String?
   admittedAt      DateTime         @default(now())
+  expectedDischargeAt DateTime?
   dischargedAt    DateTime?
+  dischargeSummary String?
   procedures      Procedure[]
   medicationDoses MedicationDose[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   @@index([status])
+  @@index([priority])
+  @@index([animalId])
+  @@index([bedId])
   @@index([admittedAt])
 }
 

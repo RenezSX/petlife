@@ -21,6 +21,7 @@ export function AppLayout() {
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/internacoes', label: 'Internações', icon: BedDouble },
+    { to: '/leitos', label: 'Leitos', icon: BedDouble },
     { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
     { to: '/medicacoes', label: 'Medicações', icon: Pill },
     { to: '/animais', label: 'Animais', icon: PawPrint },
@@ -79,7 +80,7 @@ export function AppLayout() {
             <span>Clínica Veterinária 24h</span>
           </div>
 
-          <small>Fase 2 • v1.1.0</small>
+          <small>Fase 3 • v1.2.0</small>
         </div>
       </aside>
 
