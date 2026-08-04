@@ -1,11 +1,23 @@
 import { Router } from 'express';
-import * as authController from '../controllers/auth.controller.js';
 import * as dashboardController from '../controllers/dashboard.controller.js';
 import * as tutorController from '../controllers/tutor.controller.js';
 import * as animalController from '../controllers/animal.controller.js';
-import { requireAuth } from '../middlewares/auth.js';
-export const routes=Router();
-routes.post('/auth/login',authController.login); routes.get('/auth/me',requireAuth,authController.me);
-routes.get('/dashboard/summary',requireAuth,dashboardController.summary);
-routes.get('/tutors/options',requireAuth,tutorController.options); routes.get('/tutors',requireAuth,tutorController.list); routes.post('/tutors',requireAuth,tutorController.create); routes.get('/tutors/:id',requireAuth,tutorController.get); routes.put('/tutors/:id',requireAuth,tutorController.update); routes.patch('/tutors/:id/deactivate',requireAuth,tutorController.deactivate); routes.patch('/tutors/:id/reactivate',requireAuth,tutorController.reactivate);
-routes.get('/animals',requireAuth,animalController.list); routes.post('/animals',requireAuth,animalController.create); routes.get('/animals/:id',requireAuth,animalController.get); routes.put('/animals/:id',requireAuth,animalController.update); routes.patch('/animals/:id/deactivate',requireAuth,animalController.deactivate); routes.patch('/animals/:id/reactivate',requireAuth,animalController.reactivate);
+
+export const routes = Router();
+
+routes.get('/dashboard/summary', dashboardController.summary);
+
+routes.get('/tutors/options', tutorController.options);
+routes.get('/tutors', tutorController.list);
+routes.post('/tutors', tutorController.create);
+routes.get('/tutors/:id', tutorController.get);
+routes.put('/tutors/:id', tutorController.update);
+routes.patch('/tutors/:id/deactivate', tutorController.deactivate);
+routes.patch('/tutors/:id/reactivate', tutorController.reactivate);
+
+routes.get('/animals', animalController.list);
+routes.post('/animals', animalController.create);
+routes.get('/animals/:id', animalController.get);
+routes.put('/animals/:id', animalController.update);
+routes.patch('/animals/:id/deactivate', animalController.deactivate);
+routes.patch('/animals/:id/reactivate', animalController.reactivate);
