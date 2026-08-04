@@ -1,23 +1,21 @@
 # PetLife — Fase 2
 
-Sistema de gestão veterinária com autenticação, dashboard, cadastro de tutores e cadastro de animais.
+Sistema de gestão para clínicas veterinárias com identidade visual inspirada na PetLife São Caetano.
 
-## Funcionalidades
+## Entregas desta fase
 
-- Login JWT e rotas protegidas
-- Dashboard de internação
-- Tutores: cadastro, edição, busca, paginação, filtros, inativação e reativação
-- Animais: cadastro, edição, busca, filtros, vínculo com tutor, dados clínicos, foto por URL, inativação e reativação
-- Validação de dados no backend
-- SQLite local, sem Docker
-- Interface responsiva em verde e laranja
+- Login com JWT
+- Dashboard integrado à API
+- CRUD completo de tutores
+- CRUD completo de animais
+- Busca, filtros e paginação
+- Inativação e reativação
+- Vínculo obrigatório entre animal e tutor
+- SQLite + Prisma
+- Layout responsivo em azul petróleo e laranja
+- Sidebar, cards, tabelas, modais e formulários redesenhados
 
-## Requisitos
-
-- Node.js 20 ou 22 LTS recomendado
-- npm 10+
-
-## Instalação
+## Como executar em uma pasta nova
 
 ```powershell
 npm install
@@ -27,31 +25,20 @@ npm run db:seed
 npm run dev
 ```
 
-Acesse o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
+Acesse `http://localhost:5173`.
 
-## Credenciais iniciais
+**Login:** `admin@petlife.local`  
+**Senha:** `Admin@123`
 
-- E-mail: `admin@petlife.local`
-- Senha: `Admin@123`
+## Observação sobre banco anterior
 
-## Banco
-
-O SQLite é criado em `apps/api/prisma/dev.db`.
-
-## Comandos úteis
+Esta entrega possui uma migration inicial limpa. Ao substituir uma instalação antiga de desenvolvimento, remova o banco local antes de migrar:
 
 ```powershell
-npm run typecheck
-npm run build
-npm run lint
+Remove-Item apps\api\prisma\dev.db -ErrorAction SilentlyContinue
+Remove-Item apps\api\prisma\dev.db-journal -ErrorAction SilentlyContinue
+npm run db:migrate
+npm run db:seed
 ```
 
-Se o comando conjunto de desenvolvimento falhar no Windows, use dois terminais:
-
-```powershell
-npm --prefix apps/api run dev
-```
-
-```powershell
-npm --prefix apps/web run dev
-```
+Nunca envie `apps/api/.env`, `dev.db` ou `node_modules` ao GitHub.
