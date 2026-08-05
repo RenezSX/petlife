@@ -1,32 +1,312 @@
-# PetLife — Gestão Veterinária
+# 🐾 PetLife
 
-Sistema interno para gestão de uma clínica veterinária, construído com React, TypeScript, Express, Prisma e SQLite.
+### Sistema de Gestão para Clínicas Veterinárias
 
-## Fases concluídas
+O **PetLife** é um sistema completo para gestão de clínicas veterinárias, desenvolvido com foco em **estudo, aperfeiçoamento técnico e composição de portfólio**.
 
-- Fase 1: estrutura inicial e dashboard
-- Fase 2: tutores, animais e identidade visual PetLife
-- Fase 4: internações e gestão de leitos
+O projeto foi construído de forma incremental, simulando o desenvolvimento de um software real, utilizando uma arquitetura moderna, boas práticas de programação e tecnologias amplamente utilizadas no mercado.
 
-## Funcionalidades da Fase 4
+---
 
-- Abrir e editar internações
-- Buscar e filtrar por status e prioridade
-- Selecionar animal, leito e veterinário responsável
-- Registrar motivo, diagnóstico, observações e previsão de alta
-- Impedir duas internações ativas para o mesmo animal
-- Impedir dois pacientes no mesmo leito
-- Finalizar a internação com resumo de alta
-- Liberar o leito automaticamente após a alta
-- Cadastrar, editar, ativar e inativar leitos
-- Visualizar ocupação por setor
-- Indicadores de pacientes ativos, críticos, altas previstas e leitos livres
+# 🚀 Tecnologias
 
-## Executar
+## Front-end
+
+- React
+- TypeScript
+- Vite
+- React Router
+- Axios
+- Lucide React
+
+## Back-end
+
+- Node.js
+- Express
+- TypeScript
+- Prisma ORM
+- SQLite
+
+---
+
+# ✨ Funcionalidades
+
+## ✅ Fase 1 — Estrutura Inicial
+
+- Estrutura completa do projeto
+- Dashboard inicial
+- API REST
+- Integração React + Express
+- Prisma ORM
+- Banco SQLite
+
+---
+
+## ✅ Fase 2 — Tutores e Animais
+
+### Tutores
+
+- Cadastro
+- Edição
+- Pesquisa
+- Paginação
+- Ativação e inativação
+
+### Animais
+
+- Cadastro
+- Edição
+- Espécie
+- Sexo
+- Tutor responsável
+- Histórico
+- Pesquisa
+- Paginação
+- Ativação e inativação
+
+### Interface
+
+- Identidade visual PetLife
+- Componentes reutilizáveis
+- Modais
+- Layout responsivo
+
+---
+
+## ✅ Fase 3 — Internações e Leitos
+
+### Internações
+
+- Abrir internação
+- Editar internação
+- Finalizar internação
+- Resumo de alta
+- Diagnóstico
+- Observações
+- Veterinário responsável
+- Previsão de alta
+
+### Regras de negócio
+
+- Um animal não pode possuir duas internações ativas
+- Um leito não pode receber dois pacientes simultaneamente
+- Liberação automática do leito após alta
+
+### Gestão de Leitos
+
+- Cadastro
+- Edição
+- Ativação
+- Inativação
+- Ocupação por setor
+
+### Indicadores
+
+- Pacientes internados
+- Pacientes críticos
+- Altas previstas
+- Leitos livres
+
+---
+
+## ✅ Fase 4 — Procedimentos e Medicações
+
+### Procedimentos
+
+- Agenda clínica
+- Controle de status
+- Responsáveis
+- Alteração de status
+- Indicadores
+
+### Medicações
+
+- Prescrições
+- Geração automática de doses
+- Administração
+- Recusa
+- Justificativa
+- Alertas
+
+### Timeline Clínica
+
+- Linha do tempo por internação
+
+---
+
+## ✅ Fase 5.1 — Dashboard Profissional
+
+- Dashboard operacional
+- Indicadores em tempo real
+- Taxa de ocupação
+- Ocupação por setor
+- Agenda clínica
+- Próximas medicações
+- Pacientes prioritários
+- Central automática de alertas
+- Skeleton loading
+
+---
+
+## ✅ Fase 5.2 — Pesquisa Global
+
+Pesquisa unificada por:
+
+- Tutores
+- Animais
+- Internações
+- Leitos
+- Procedimentos
+- Medicações
+
+### Recursos
+
+- Atalho **Ctrl + K**
+- Busca com debounce
+- Histórico local
+- Navegação por teclado
+- Resultados agrupados
+
+---
+
+## ✅ Fase 5.3 — Relatórios
+
+Relatórios completos de:
+
+- Internações
+- Procedimentos
+- Medicações
+- Tutores
+- Animais
+- Leitos
+
+### Recursos
+
+- Filtros
+- Indicadores
+- Exportação CSV
+- Exportação Excel
+- Impressão em PDF
+- Identidade visual PetLife
+
+---
+
+## ✅ Fase 5.4 — Timeline Clínica
+
+Prontuário completo por internação
+
+- Evoluções clínicas
+- Observações
+- Sinais vitais
+- Pesquisa
+- Filtros
+- Indicadores
+- Impressão
+
+Integração automática com:
+
+- Internações
+- Procedimentos
+- Medicações
+- Altas
+
+---
+
+## ✅ Fase 5.5 — Central de Notificações
+
+- Sino de notificações
+- Contador de alertas
+- Atualização automática
+- Alertas de procedimentos
+- Alertas de medicações
+- Pacientes críticos
+- Altas previstas
+- Leitos disponíveis
+- Ocultar e restaurar alertas
+
+---
+
+## ✅ Fase 6 — Dashboard em Tempo Real
+
+### Indicadores
+
+- Internações
+- Pacientes críticos
+- Leitos ocupados
+- Leitos livres
+- Procedimentos pendentes
+- Medicações pendentes
+- Altas previstas
+
+### Painéis
+
+- Agenda clínica
+- Próximas medicações
+- Últimas movimentações
+- Pacientes prioritários
+- Central de alertas
+
+### Dashboard
+
+- Atualização automática a cada 30 segundos
+- Tendência clínica dos últimos 7 dias
+- Distribuição por prioridade
+
+---
+
+## ✅ Fase 7.1 — Configurações da Clínica
+
+### Dados da Clínica
+
+- Nome
+- Razão Social
+- CNPJ
+- Telefone
+- WhatsApp
+- E-mail
+- Endereço
+- Cidade
+- Estado
+- CEP
+
+### Personalização
+
+- Upload do logotipo
+- Frase institucional
+- Horário de funcionamento
+
+### Configurações
+
+- Setores
+- Prioridades
+- Espécies
+- Vias de administração
+
+### Aparência
+
+- Tema claro
+- Tema escuro
+- Tema automático (segue o sistema)
+
+As configurações são refletidas automaticamente em:
+
+- Sidebar
+- Cabeçalho
+- Rodapé
+- Relatórios
+
+Endpoints disponíveis:
+
+- `GET /api/v1/settings`
+- `PUT /api/v1/settings`
+
+---
+
+# ▶️ Como executar
 
 Na raiz do projeto:
 
-```powershell
+```bash
 npm install
 npm run db:generate
 npm run db:migrate
@@ -34,11 +314,29 @@ npm run db:seed
 npm run dev
 ```
 
-Acesse `http://localhost:5173`.
+A aplicação ficará disponível em:
 
-## Variáveis de ambiente
+```
+http://localhost:5173
+```
 
-Crie `apps/api/.env` baseado em `apps/api/.env.example`:
+---
+
+# ⚙️ Variáveis de ambiente
+
+Crie o arquivo:
+
+```
+apps/api/.env
+```
+
+Baseado em:
+
+```
+apps/api/.env.example
+```
+
+Conteúdo:
 
 ```env
 DATABASE_URL="file:./dev.db"
@@ -48,77 +346,76 @@ PORT=3333
 CORS_ORIGIN="http://localhost:5173"
 ```
 
-A aplicação atualmente abre diretamente no dashboard, sem tela de login.
+---
 
+# 📂 Estrutura do Projeto
 
-## Fase 4 — Procedimentos e medicações
+```
+apps
+├── api
+│   ├── prisma
+│   └── src
+│       ├── controllers
+│       ├── routes
+│       ├── services
+│       ├── validations
+│       └── utils
+│
+└── web
+    └── src
+        ├── components
+        ├── layouts
+        ├── pages
+        ├── services
+        ├── styles
+        └── types
+```
 
-- Agenda de procedimentos com status e responsáveis
-- Prescrições com geração automática de doses
-- Registro de administração, recusa e justificativa
-- Alertas de doses atrasadas e próximas
-- Linha do tempo clínica por internação
+---
 
-## Fase 5.1 — Dashboard profissional
+# 🎯 Objetivos do Projeto
 
-- Indicadores operacionais em tempo real
-- Taxa e mapa de ocupação por setor
-- Central automática de alertas
-- Agenda de procedimentos do dia
-- Próximas medicações das próximas 6 horas
-- Pacientes prioritários e skeleton loading
+O PetLife foi desenvolvido para consolidar conhecimentos em desenvolvimento Full Stack e simular a evolução de um sistema utilizado em clínicas veterinárias.
 
+Durante o desenvolvimento foram aplicados conceitos como:
 
-## Fase 5.2 — Pesquisa Global
+- Arquitetura em camadas
+- API REST
+- CRUD completo
+- Prisma ORM
+- React + TypeScript
+- Componentização
+- Validação de dados
+- Dashboards
+- Relatórios
+- Timeline clínica
+- Pesquisa global
+- Sistema de notificações
+- Configurações da aplicação
+- Organização e manutenção de código
 
-- Pesquisa unificada por tutores, animais, internações, leitos, procedimentos e medicações.
-- Atalho de teclado `Ctrl + K`.
-- Resultados agrupados, navegação por teclado e histórico local das últimas pesquisas.
-- Busca com debounce e navegação direta para os módulos encontrados.
+---
 
-## Fase 5.3 — Relatórios e exportações
+# 📈 Status do Projeto
 
-- Relatórios de internações, procedimentos, medicações, animais, tutores e leitos.
-- Filtros por período e situação.
-- Pré-visualização tabular com indicadores resumidos.
-- Exportação em CSV e Excel compatível (`.xls`).
-- Geração de PDF usando a caixa de impressão do navegador (“Salvar como PDF”).
-- Relatórios com identidade visual da PetLife.
+| Etapa | Status |
+|--------|:------:|
+| Fase 1 | ✅ |
+| Fase 2 | ✅ |
+| Fase 3 | ✅ |
+| Fase 4 | ✅ |
+| Fase 5.1 | ✅ |
+| Fase 5.2 | ✅ |
+| Fase 5.3 | ✅ |
+| Fase 5.4 | ✅ |
+| Fase 5.5 | ✅ |
+| Fase 6 | ✅ |
+| Fase 7.1 | ✅ |
 
+---
 
-## Fase 5.4 — Timeline clínica
+# 👨‍💻 Desenvolvedor
 
-- Prontuário cronológico unificado por internação.
-- Evoluções, observações e sinais vitais manuais.
-- Edição e exclusão de registros clínicos.
-- Filtros, pesquisa, indicadores e impressão do prontuário.
-- Integração automática com procedimentos, medicações, internação e alta.
+**Vinicius Renê**
 
-
-## Fase 5.5 — Central de notificações
-
-- Sino de alertas no cabeçalho com contador em tempo real.
-- Alertas de doses atrasadas e próximas, procedimentos atrasados, pacientes críticos, altas previstas e leitos disponíveis.
-- Atualização automática a cada minuto.
-- Navegação direta para o módulo relacionado.
-- Possibilidade de ocultar alertas localmente e restaurá-los depois.
-
-
-## Fase 6 — Dashboard em tempo real
-
-- Atualização automática do dashboard a cada 30 segundos.
-- Indicadores operacionais, ocupação e prioridades.
-- Tendência clínica dos últimos 7 dias.
-- Agenda de procedimentos e medicações.
-- Últimas movimentações do sistema.
-- Painel de pacientes prioritários e alertas.
-
-## Fase 7.1 — Configurações da Clínica
-
-- Dados cadastrais e contatos da clínica
-- Upload e persistência do logotipo
-- Horário de funcionamento e frase institucional
-- Listas configuráveis de setores, prioridades, espécies e vias de administração
-- Tema claro, escuro ou sincronizado com o sistema
-- Nome, logotipo e rodapé aplicados automaticamente no layout e nos relatórios
-- Endpoint `GET /api/v1/settings` e `PUT /api/v1/settings`
+Projeto desenvolvido para **estudo, aperfeiçoamento técnico e composição de portfólio**, com foco na criação de um sistema completo de gestão veterinária utilizando React, TypeScript, Node.js, Express, Prisma ORM e SQLite.
