@@ -23,3 +23,11 @@ export type MedicationPrescription={id:string;hospitalizationId:string;medicatio
 export type MedicationStats={pending:number;overdue:number;next:number;administered:number};
 export type TimelineEvent={id:string;type:string;title:string;description:string|null;date:string;status:string;responsible?:string|null};
 export type HospitalizationTimeline={hospitalization:{id:string;animal:Animal;bed:Bed|null;status:string;priority:string;reason:string;diagnosis:string|null;veterinarian:string|null;admittedAt:string;dischargedAt:string|null};events:TimelineEvent[]};
+export type GlobalSearchItem={id:string;type:'tutor'|'animal'|'hospitalization'|'bed'|'procedure'|'medication';title:string;subtitle:string;meta?:string;href:string};
+export type GlobalSearchGroup={key:string;label:string;items:GlobalSearchItem[]};
+export type GlobalSearchResponse={query:string;total:number;groups:GlobalSearchGroup[]};
+
+export type ReportType='hospitalizations'|'procedures'|'medications'|'animals'|'tutors'|'beds';
+export type ReportColumn={key:string;label:string};
+export type ReportRow=Record<string,string|number|null>;
+export type ReportData={type:ReportType;title:string;generatedAt:string;columns:ReportColumn[];rows:ReportRow[];summary:Record<string,string|number>};
