@@ -58,3 +58,12 @@ A aplicação atualmente abre diretamente no dashboard, sem tela de login.
 - Registro de administração, recusa e justificativa
 - Alertas de doses atrasadas e próximas
 - Linha do tempo clínica por internação
+
+## Fase 5.1 — Dashboard profissional
+
+- Indicadores operacionais em tempo real
+- Taxa e mapa de ocupação por setor
+- Central automática de alertas
+- Agenda de procedimentos do dia
+- Próximas medicações das próximas 6 horas
+- Pacientes prioritários e skeleton loading

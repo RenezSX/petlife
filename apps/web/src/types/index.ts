@@ -1,6 +1,10 @@
 export type User={id:string;name:string;email:string;role:'ADMIN'|'VETERINARIAN'|'ASSISTANT'|'RECEPTIONIST'};
 export type RecentHospitalization={id:string;animal:string;species:string;tutor:string;bed:string;status:string;priority:string;admittedAt:string};
-export type DashboardData={metrics:{hospitalized:number;critical:number;pendingProcedures:number;pendingMedications:number};recent:RecentHospitalization[]};
+export type DashboardAlert={id:string;level:'danger'|'warning'|'info'|'success';title:string;description:string;href:string};
+export type DashboardSector={name:string;total:number;occupied:number;available:number;occupancyRate:number};
+export type DashboardProcedureAgenda={id:string;title:string;status:string;scheduledAt:string;patient:string;tutor:string;bed:string;responsible:string|null};
+export type DashboardMedicationAgenda={id:string;medication:string;dose:string|null;unit:string|null;route:string|null;scheduledAt:string;patient:string;tutor:string;bed:string};
+export type DashboardData={metrics:{hospitalized:number;critical:number;totalBeds:number;occupiedBeds:number;availableBeds:number;occupancyRate:number;pendingProcedures:number;overdueProcedures:number;pendingMedications:number;overdueMedications:number;administeredToday:number;expectedDischarges:number};sectors:DashboardSector[];procedureStatus:{pending:number;overdue:number;completedToday:number};medicationStatus:{pending:number;overdue:number;administeredToday:number};alerts:DashboardAlert[];agenda:{procedures:DashboardProcedureAgenda[];medications:DashboardMedicationAgenda[]};recent:RecentHospitalization[]};
 export type Pagination={page:number;pageSize:number;total:number;totalPages:number};
 export type Tutor={id:string;name:string;cpf:string|null;phone:string;whatsapp:string|null;email:string|null;address:string|null;notes:string|null;active:boolean;createdAt:string;updatedAt:string;_count?:{animals:number};animals?:Animal[]};
 export type TutorOption={id:string;name:string;phone:string};

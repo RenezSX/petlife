@@ -80,7 +80,7 @@ export function AppLayout() {
             <span>Clínica Veterinária 24h</span>
           </div>
 
-          <small>Fase 4 • v1.3.0</small>
+          <small>Fase 5.1 • v1.4.0</small>
         </div>
       </aside>
 
