@@ -3,17 +3,28 @@ import { Cross, PawPrint } from 'lucide-react';
 type BrandLogoProps = {
   compact?: boolean;
   light?: boolean;
+  name?: string;
+  logoDataUrl?: string | null;
 };
 
-export function BrandLogo({ compact = false, light = false }: BrandLogoProps) {
+export function BrandLogo({ compact = false, light = false, name = 'PetLife', logoDataUrl }: BrandLogoProps) {
+  const normalized = name.trim() || 'PetLife';
+  const parts = normalized.split(/\s+/);
+  const first = parts.shift() ?? normalized;
+  const rest = parts.join(' ');
+
   return (
     <div className={`brand-logo ${compact ? 'brand-logo-compact' : ''} ${light ? 'brand-logo-light' : ''}`}>
-      <span className="brand-symbol" aria-hidden="true">
-        <PawPrint size={compact ? 21 : 28} />
-        <Cross className="brand-cross" size={compact ? 11 : 14} strokeWidth={3} />
-      </span>
+      {logoDataUrl ? (
+        <span className="brand-uploaded-logo"><img src={logoDataUrl} alt={`Logo ${normalized}`} /></span>
+      ) : (
+        <span className="brand-symbol" aria-hidden="true">
+          <PawPrint size={compact ? 21 : 28} />
+          <Cross className="brand-cross" size={compact ? 11 : 14} strokeWidth={3} />
+        </span>
+      )}
       <span className="brand-wordmark">
-        <strong>PET</strong><b>LIFE</b>
+        <strong>{first.toUpperCase()}</strong>{rest && <b>{rest.toUpperCase()}</b>}
         {!compact && <small>CLÍNICA VETERINÁRIA</small>}
       </span>
     </div>
