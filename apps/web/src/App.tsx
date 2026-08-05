@@ -9,6 +9,7 @@ import { BedsPage } from './pages/BedsPage';
 import { ProceduresPage } from './pages/ProceduresPage';
 import { MedicationsPage } from './pages/MedicationsPage';
 import { HospitalizationTimelinePage } from './pages/HospitalizationTimelinePage';
+import { ReportsPage } from './pages/ReportsPage';
 
 export default function App() {
   return (
@@ -35,10 +36,7 @@ export default function App() {
             element={<PlaceholderPage title="Profissionais" />}
           />
 
-          <Route
-            path="/relatorios"
-            element={<PlaceholderPage title="Relatórios" />}
-          />
+          <Route path="/relatorios" element={<ReportsPage />} />
 
           <Route
             path="/configuracoes"

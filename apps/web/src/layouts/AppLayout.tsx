@@ -14,6 +14,7 @@ import {
 import { NavLink, Outlet } from 'react-router-dom';
 import { useState } from 'react';
 import { BrandLogo } from '../components/BrandLogo';
+import { GlobalSearch } from '../components/GlobalSearch';
 
 export function AppLayout() {
   const [open, setOpen] = useState(false);
@@ -80,7 +81,7 @@ export function AppLayout() {
             <span>Clínica Veterinária 24h</span>
           </div>
 
-          <small>Fase 4 • v1.3.0</small>
+          <small>Fase 5.3 • v1.6.0</small>
         </div>
       </aside>
 
@@ -99,6 +100,8 @@ export function AppLayout() {
             <strong>PetLife</strong>
             <span>Gestão veterinária</span>
           </div>
+
+          <GlobalSearch />
 
           <div className="user-chip">
             <span className="user-avatar">P</span>

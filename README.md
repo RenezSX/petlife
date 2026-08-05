@@ -58,3 +58,29 @@ A aplicação atualmente abre diretamente no dashboard, sem tela de login.
 - Registro de administração, recusa e justificativa
 - Alertas de doses atrasadas e próximas
 - Linha do tempo clínica por internação
+
+## Fase 5.1 — Dashboard profissional
+
+- Indicadores operacionais em tempo real
+- Taxa e mapa de ocupação por setor
+- Central automática de alertas
+- Agenda de procedimentos do dia
+- Próximas medicações das próximas 6 horas
+- Pacientes prioritários e skeleton loading
+
+
+## Fase 5.2 — Pesquisa Global
+
+- Pesquisa unificada por tutores, animais, internações, leitos, procedimentos e medicações.
+- Atalho de teclado `Ctrl + K`.
+- Resultados agrupados, navegação por teclado e histórico local das últimas pesquisas.
+- Busca com debounce e navegação direta para os módulos encontrados.
+
+## Fase 5.3 — Relatórios e exportações
+
+- Relatórios de internações, procedimentos, medicações, animais, tutores e leitos.
+- Filtros por período e situação.
+- Pré-visualização tabular com indicadores resumidos.
+- Exportação em CSV e Excel compatível (`.xls`).
+- Geração de PDF usando a caixa de impressão do navegador (“Salvar como PDF”).
+- Relatórios com identidade visual da PetLife.

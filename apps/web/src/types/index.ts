@@ -1,6 +1,10 @@
 export type User={id:string;name:string;email:string;role:'ADMIN'|'VETERINARIAN'|'ASSISTANT'|'RECEPTIONIST'};
 export type RecentHospitalization={id:string;animal:string;species:string;tutor:string;bed:string;status:string;priority:string;admittedAt:string};
-export type DashboardData={metrics:{hospitalized:number;critical:number;pendingProcedures:number;pendingMedications:number};recent:RecentHospitalization[]};
+export type DashboardAlert={id:string;level:'danger'|'warning'|'info'|'success';title:string;description:string;href:string};
+export type DashboardSector={name:string;total:number;occupied:number;available:number;occupancyRate:number};
+export type DashboardProcedureAgenda={id:string;title:string;status:string;scheduledAt:string;patient:string;tutor:string;bed:string;responsible:string|null};
+export type DashboardMedicationAgenda={id:string;medication:string;dose:string|null;unit:string|null;route:string|null;scheduledAt:string;patient:string;tutor:string;bed:string};
+export type DashboardData={metrics:{hospitalized:number;critical:number;totalBeds:number;occupiedBeds:number;availableBeds:number;occupancyRate:number;pendingProcedures:number;overdueProcedures:number;pendingMedications:number;overdueMedications:number;administeredToday:number;expectedDischarges:number};sectors:DashboardSector[];procedureStatus:{pending:number;overdue:number;completedToday:number};medicationStatus:{pending:number;overdue:number;administeredToday:number};alerts:DashboardAlert[];agenda:{procedures:DashboardProcedureAgenda[];medications:DashboardMedicationAgenda[]};recent:RecentHospitalization[]};
 export type Pagination={page:number;pageSize:number;total:number;totalPages:number};
 export type Tutor={id:string;name:string;cpf:string|null;phone:string;whatsapp:string|null;email:string|null;address:string|null;notes:string|null;active:boolean;createdAt:string;updatedAt:string;_count?:{animals:number};animals?:Animal[]};
 export type TutorOption={id:string;name:string;phone:string};
@@ -19,3 +23,11 @@ export type MedicationPrescription={id:string;hospitalizationId:string;medicatio
 export type MedicationStats={pending:number;overdue:number;next:number;administered:number};
 export type TimelineEvent={id:string;type:string;title:string;description:string|null;date:string;status:string;responsible?:string|null};
 export type HospitalizationTimeline={hospitalization:{id:string;animal:Animal;bed:Bed|null;status:string;priority:string;reason:string;diagnosis:string|null;veterinarian:string|null;admittedAt:string;dischargedAt:string|null};events:TimelineEvent[]};
+export type GlobalSearchItem={id:string;type:'tutor'|'animal'|'hospitalization'|'bed'|'procedure'|'medication';title:string;subtitle:string;meta?:string;href:string};
+export type GlobalSearchGroup={key:string;label:string;items:GlobalSearchItem[]};
+export type GlobalSearchResponse={query:string;total:number;groups:GlobalSearchGroup[]};
+
+export type ReportType='hospitalizations'|'procedures'|'medications'|'animals'|'tutors'|'beds';
+export type ReportColumn={key:string;label:string};
+export type ReportRow=Record<string,string|number|null>;
+export type ReportData={type:ReportType;title:string;generatedAt:string;columns:ReportColumn[];rows:ReportRow[];summary:Record<string,string|number>};

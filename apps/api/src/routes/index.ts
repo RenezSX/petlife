@@ -7,10 +7,14 @@ import * as bedController from '../controllers/bed.controller.js';
 import * as procedureController from '../controllers/procedure.controller.js';
 import * as medicationController from '../controllers/medication.controller.js';
 import * as timelineController from '../controllers/timeline.controller.js';
+import * as searchController from '../controllers/search.controller.js';
+import * as reportController from '../controllers/report.controller.js';
 
 export const routes = Router();
 
 routes.get('/dashboard/summary', dashboardController.summary);
+routes.get('/search', searchController.search);
+routes.get('/reports', reportController.generate);
 
 routes.get('/tutors/options', tutorController.options);
 routes.get('/tutors', tutorController.list);
