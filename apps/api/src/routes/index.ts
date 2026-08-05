@@ -4,6 +4,9 @@ import * as tutorController from '../controllers/tutor.controller.js';
 import * as animalController from '../controllers/animal.controller.js';
 import * as hospitalizationController from '../controllers/hospitalization.controller.js';
 import * as bedController from '../controllers/bed.controller.js';
+import * as procedureController from '../controllers/procedure.controller.js';
+import * as medicationController from '../controllers/medication.controller.js';
+import * as timelineController from '../controllers/timeline.controller.js';
 
 export const routes = Router();
 
@@ -37,3 +40,21 @@ routes.post('/beds', bedController.create);
 routes.put('/beds/:id', bedController.update);
 routes.patch('/beds/:id/deactivate', bedController.deactivate);
 routes.patch('/beds/:id/reactivate', bedController.reactivate);
+
+
+routes.get('/procedures/options', procedureController.options);
+routes.get('/procedures/stats', procedureController.stats);
+routes.get('/procedures', procedureController.list);
+routes.post('/procedures', procedureController.create);
+routes.put('/procedures/:id', procedureController.update);
+routes.patch('/procedures/:id/status', procedureController.changeStatus);
+
+routes.get('/medications/stats', medicationController.stats);
+routes.get('/medications/prescriptions', medicationController.listPrescriptions);
+routes.get('/medications/doses', medicationController.listDoses);
+routes.post('/medications/prescriptions', medicationController.create);
+routes.patch('/medications/prescriptions/:id/activate', medicationController.activate);
+routes.patch('/medications/prescriptions/:id/suspend', medicationController.suspend);
+routes.patch('/medications/doses/:id/administer', medicationController.administer);
+
+routes.get('/hospitalizations/:id/timeline', timelineController.get);

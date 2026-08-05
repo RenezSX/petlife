@@ -1,21 +1,30 @@
-# PetLife — Fase 2
+# PetLife — Gestão Veterinária
 
-Sistema de gestão para clínicas veterinárias com identidade visual inspirada na PetLife São Caetano.
+Sistema interno para gestão de uma clínica veterinária, construído com React, TypeScript, Express, Prisma e SQLite.
 
-## Entregas desta fase
+## Fases concluídas
 
-- Login com JWT
-- Dashboard integrado à API
-- CRUD completo de tutores
-- CRUD completo de animais
-- Busca, filtros e paginação
-- Inativação e reativação
-- Vínculo obrigatório entre animal e tutor
-- SQLite + Prisma
-- Layout responsivo em azul petróleo e laranja
-- Sidebar, cards, tabelas, modais e formulários redesenhados
+- Fase 1: estrutura inicial e dashboard
+- Fase 2: tutores, animais e identidade visual PetLife
+- Fase 4: internações e gestão de leitos
 
-## Como executar em uma pasta nova
+## Funcionalidades da Fase 4
+
+- Abrir e editar internações
+- Buscar e filtrar por status e prioridade
+- Selecionar animal, leito e veterinário responsável
+- Registrar motivo, diagnóstico, observações e previsão de alta
+- Impedir duas internações ativas para o mesmo animal
+- Impedir dois pacientes no mesmo leito
+- Finalizar a internação com resumo de alta
+- Liberar o leito automaticamente após a alta
+- Cadastrar, editar, ativar e inativar leitos
+- Visualizar ocupação por setor
+- Indicadores de pacientes ativos, críticos, altas previstas e leitos livres
+
+## Executar
+
+Na raiz do projeto:
 
 ```powershell
 npm install
@@ -27,18 +36,25 @@ npm run dev
 
 Acesse `http://localhost:5173`.
 
-**Login:** `admin@petlife.local`  
-**Senha:** `Admin@123`
+## Variáveis de ambiente
 
-## Observação sobre banco anterior
+Crie `apps/api/.env` baseado em `apps/api/.env.example`:
 
-Esta entrega possui uma migration inicial limpa. Ao substituir uma instalação antiga de desenvolvimento, remova o banco local antes de migrar:
-
-```powershell
-Remove-Item apps\api\prisma\dev.db -ErrorAction SilentlyContinue
-Remove-Item apps\api\prisma\dev.db-journal -ErrorAction SilentlyContinue
-npm run db:migrate
-npm run db:seed
+```env
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="chave-local-com-mais-de-32-caracteres"
+JWT_EXPIRES_IN="8h"
+PORT=3333
+CORS_ORIGIN="http://localhost:5173"
 ```
 
-Nunca envie `apps/api/.env`, `dev.db` ou `node_modules` ao GitHub.
+A aplicação atualmente abre diretamente no dashboard, sem tela de login.
+
+
+## Fase 4 — Procedimentos e medicações
+
+- Agenda de procedimentos com status e responsáveis
+- Prescrições com geração automática de doses
+- Registro de administração, recusa e justificativa
+- Alertas de doses atrasadas e próximas
+- Linha do tempo clínica por internação

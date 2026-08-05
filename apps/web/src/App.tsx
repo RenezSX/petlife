@@ -6,6 +6,9 @@ import { AnimalsPage } from './pages/AnimalsPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { HospitalizationsPage } from './pages/HospitalizationsPage';
 import { BedsPage } from './pages/BedsPage';
+import { ProceduresPage } from './pages/ProceduresPage';
+import { MedicationsPage } from './pages/MedicationsPage';
+import { HospitalizationTimelinePage } from './pages/HospitalizationTimelinePage';
 
 export default function App() {
   return (
@@ -19,16 +22,11 @@ export default function App() {
           <Route path="/animais" element={<AnimalsPage />} />
 
           <Route path="/internacoes" element={<HospitalizationsPage />} />
+          <Route path="/internacoes/:id" element={<HospitalizationTimelinePage />} />
 
-          <Route
-            path="/procedimentos"
-            element={<PlaceholderPage title="Procedimentos" />}
-          />
+          <Route path="/procedimentos" element={<ProceduresPage />} />
 
-          <Route
-            path="/medicacoes"
-            element={<PlaceholderPage title="Medicações" />}
-          />
+          <Route path="/medicacoes" element={<MedicationsPage />} />
 
           <Route path="/leitos" element={<BedsPage />} />
 

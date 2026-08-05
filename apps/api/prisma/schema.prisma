@@ -97,6 +97,7 @@ model Hospitalization {
   dischargedAt    DateTime?
   dischargeSummary String?
   procedures      Procedure[]
+  prescriptions   MedicationPrescription[]
   medicationDoses MedicationDose[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -113,17 +114,61 @@ model Procedure {
   hospitalizationId String
   hospitalization   Hospitalization @relation(fields: [hospitalizationId], references: [id])
   title             String
+  description       String?
+  status            String          @default("PENDING")
+  responsible       String?
   scheduledAt       DateTime
   completedAt       DateTime?
+  notes             String?
   createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([hospitalizationId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model MedicationPrescription {
+  id                String           @id @default(cuid())
+  hospitalizationId String
+  hospitalization   Hospitalization  @relation(fields: [hospitalizationId], references: [id])
+  medication        String
+  dose              String
+  unit              String
+  route             String
+  frequencyHours    Int
+  startAt           DateTime
+  endAt             DateTime?
+  active            Boolean          @default(true)
+  notes             String?
+  doses             MedicationDose[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([hospitalizationId])
+  @@index([active])
 }
 
 model MedicationDose {
-  id                String          @id @default(cuid())
+  id                String                   @id @default(cuid())
   hospitalizationId String
-  hospitalization   Hospitalization @relation(fields: [hospitalizationId], references: [id])
+  hospitalization   Hospitalization          @relation(fields: [hospitalizationId], references: [id])
+  prescriptionId    String?
+  prescription      MedicationPrescription?  @relation(fields: [prescriptionId], references: [id], onDelete: SetNull)
   medication        String
+  dose              String?
+  unit              String?
+  route             String?
+  status            String                   @default("PENDING")
   scheduledAt       DateTime
   administeredAt    DateTime?
-  createdAt         DateTime        @default(now())
+  administeredBy    String?
+  notes             String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([hospitalizationId])
+  @@index([prescriptionId])
+  @@index([status])
+  @@index([scheduledAt])
 }

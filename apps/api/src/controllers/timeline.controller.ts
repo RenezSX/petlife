@@ -1,0 +1,1 @@
+import type{NextFunction,Request,Response}from'express';import{getTimeline}from'../services/timeline.service.js';export async function get(req:Request,res:Response,next:NextFunction){try{res.json(await getTimeline(String(req.params.id)))}catch(e){next(e)}}
