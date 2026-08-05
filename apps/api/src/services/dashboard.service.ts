@@ -22,11 +22,16 @@ function endOfDay(date: Date) {
   return value;
 }
 
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
 export async function getDashboardData() {
   const now = new Date();
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
   const nextSixHours = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+  const sevenDaysAgo = startOfDay(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000));
 
   const [
     activeHospitalizations,
@@ -40,7 +45,17 @@ export async function getDashboardData() {
     overdueDoses,
     upcomingDoses,
     administeredToday,
-    recentRows
+    recentRows,
+    activeByPriority,
+    admissionsTrend,
+    dischargesTrend,
+    completedProceduresTrend,
+    administeredDosesTrend,
+    recentAdmissions,
+    recentDischarges,
+    recentCompletedProcedures,
+    recentAdministeredDoses,
+    recentClinicalEvents
   ] = await Promise.all([
     prisma.hospitalization.count({
       where: { status: { in: activeHospitalizationStatuses }, dischargedAt: null }
@@ -74,7 +89,7 @@ export async function getDashboardData() {
     prisma.procedure.findMany({
       where: { scheduledAt: { gte: todayStart, lte: todayEnd } },
       orderBy: { scheduledAt: 'asc' },
-      take: 6,
+      take: 8,
       include: {
         hospitalization: {
           include: { animal: { include: { tutor: true } }, bed: true }
@@ -88,7 +103,7 @@ export async function getDashboardData() {
     prisma.medicationDose.findMany({
       where: { status: 'PENDING', scheduledAt: { gte: now, lte: nextSixHours } },
       orderBy: { scheduledAt: 'asc' },
-      take: 6,
+      take: 8,
       include: {
         hospitalization: {
           include: { animal: { include: { tutor: true } }, bed: true }
@@ -100,9 +115,58 @@ export async function getDashboardData() {
     }),
     prisma.hospitalization.findMany({
       where: { dischargedAt: null, status: { in: activeHospitalizationStatuses } },
-      take: 6,
+      take: 8,
       orderBy: [{ priority: 'desc' }, { admittedAt: 'desc' }],
       include: { animal: { include: { tutor: true } }, bed: true }
+    }),
+    prisma.hospitalization.groupBy({
+      by: ['priority'],
+      where: { dischargedAt: null, status: { in: activeHospitalizationStatuses } },
+      _count: { _all: true }
+    }),
+    prisma.hospitalization.findMany({
+      where: { admittedAt: { gte: sevenDaysAgo } },
+      select: { admittedAt: true }
+    }),
+    prisma.hospitalization.findMany({
+      where: { dischargedAt: { gte: sevenDaysAgo } },
+      select: { dischargedAt: true }
+    }),
+    prisma.procedure.findMany({
+      where: { status: 'COMPLETED', completedAt: { gte: sevenDaysAgo } },
+      select: { completedAt: true }
+    }),
+    prisma.medicationDose.findMany({
+      where: { status: 'ADMINISTERED', administeredAt: { gte: sevenDaysAgo } },
+      select: { administeredAt: true }
+    }),
+    prisma.hospitalization.findMany({
+      orderBy: { admittedAt: 'desc' },
+      take: 5,
+      include: { animal: true, bed: true }
+    }),
+    prisma.hospitalization.findMany({
+      where: { dischargedAt: { not: null } },
+      orderBy: { dischargedAt: 'desc' },
+      take: 5,
+      include: { animal: true, bed: true }
+    }),
+    prisma.procedure.findMany({
+      where: { status: 'COMPLETED', completedAt: { not: null } },
+      orderBy: { completedAt: 'desc' },
+      take: 5,
+      include: { hospitalization: { include: { animal: true } } }
+    }),
+    prisma.medicationDose.findMany({
+      where: { status: 'ADMINISTERED', administeredAt: { not: null } },
+      orderBy: { administeredAt: 'desc' },
+      take: 5,
+      include: { hospitalization: { include: { animal: true } } }
+    }),
+    prisma.clinicalEvent.findMany({
+      orderBy: { eventAt: 'desc' },
+      take: 5,
+      include: { hospitalization: { include: { animal: true } } }
     })
   ]);
 
@@ -144,7 +208,79 @@ export async function getDashboardData() {
       : [])
   ];
 
+  const trendDays = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(sevenDaysAgo);
+    date.setDate(sevenDaysAgo.getDate() + index);
+    const key = dateKey(date);
+    return {
+      date: key,
+      label: new Intl.DateTimeFormat('pt-BR', { weekday: 'short' }).format(date).replace('.', ''),
+      admissions: admissionsTrend.filter((item) => dateKey(item.admittedAt) === key).length,
+      discharges: dischargesTrend.filter((item) => item.dischargedAt && dateKey(item.dischargedAt) === key).length,
+      procedures: completedProceduresTrend.filter((item) => item.completedAt && dateKey(item.completedAt) === key).length,
+      medications: administeredDosesTrend.filter((item) => item.administeredAt && dateKey(item.administeredAt) === key).length
+    };
+  });
+
+  const priorityOrder = ['URGENT', 'HIGH', 'NORMAL', 'LOW'];
+  const priorities = priorityOrder.map((priority) => ({
+    priority,
+    total: activeByPriority.find((item) => item.priority === priority)?._count._all ?? 0
+  }));
+
+  const activity = [
+    ...recentAdmissions.map((item) => ({
+      id: `admission-${item.id}`,
+      type: 'ADMISSION',
+      title: 'Paciente internado',
+      description: `${item.animal.name} foi admitido${item.bed ? ` no leito ${item.bed.name}` : ''}.`,
+      patient: item.animal.name,
+      date: item.admittedAt.toISOString(),
+      href: `/internacoes/${item.id}`
+    })),
+    ...recentDischarges.filter((item) => item.dischargedAt).map((item) => ({
+      id: `discharge-${item.id}`,
+      type: 'DISCHARGE',
+      title: 'Alta realizada',
+      description: `${item.animal.name} teve a internação encerrada.`,
+      patient: item.animal.name,
+      date: item.dischargedAt!.toISOString(),
+      href: `/internacoes/${item.id}`
+    })),
+    ...recentCompletedProcedures.filter((item) => item.completedAt).map((item) => ({
+      id: `procedure-${item.id}`,
+      type: 'PROCEDURE',
+      title: 'Procedimento concluído',
+      description: `${item.title} • ${item.hospitalization.animal.name}`,
+      patient: item.hospitalization.animal.name,
+      date: item.completedAt!.toISOString(),
+      href: '/procedimentos'
+    })),
+    ...recentAdministeredDoses.filter((item) => item.administeredAt).map((item) => ({
+      id: `dose-${item.id}`,
+      type: 'MEDICATION',
+      title: 'Dose administrada',
+      description: `${item.medication} • ${item.hospitalization.animal.name}`,
+      patient: item.hospitalization.animal.name,
+      date: item.administeredAt!.toISOString(),
+      href: '/medicacoes'
+    })),
+    ...recentClinicalEvents.map((item) => ({
+      id: `clinical-${item.id}`,
+      type: 'CLINICAL',
+      title: item.title,
+      description: `${item.hospitalization.animal.name} • ${item.type === 'VITALS' ? 'Sinais vitais' : 'Registro clínico'}`,
+      patient: item.hospitalization.animal.name,
+      date: item.eventAt.toISOString(),
+      href: `/internacoes/${item.hospitalizationId}`
+    }))
+  ]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
+
   return {
+    generatedAt: now.toISOString(),
+    refreshIntervalSeconds: 30,
     metrics: {
       hospitalized: activeHospitalizations,
       critical,
@@ -160,6 +296,8 @@ export async function getDashboardData() {
       expectedDischarges
     },
     sectors,
+    priorityDistribution: priorities,
+    trends: trendDays,
     procedureStatus: {
       pending: pendingProcedures,
       overdue: overdueProcedures,
@@ -194,6 +332,7 @@ export async function getDashboardData() {
         bed: item.hospitalization.bed?.name ?? 'Sem leito'
       }))
     },
+    activity,
     recent: recentRows.map((item) => ({
       id: item.id,
       animal: item.animal.name,

@@ -9,12 +9,17 @@ import * as medicationController from '../controllers/medication.controller.js';
 import * as timelineController from '../controllers/timeline.controller.js';
 import * as searchController from '../controllers/search.controller.js';
 import * as reportController from '../controllers/report.controller.js';
+import * as notificationController from '../controllers/notification.controller.js';
+import * as settingsController from '../controllers/settings.controller.js';
 
 export const routes = Router();
 
 routes.get('/dashboard/summary', dashboardController.summary);
 routes.get('/search', searchController.search);
 routes.get('/reports', reportController.generate);
+routes.get('/notifications', notificationController.list);
+routes.get('/settings', settingsController.get);
+routes.put('/settings', settingsController.update);
 
 routes.get('/tutors/options', tutorController.options);
 routes.get('/tutors', tutorController.list);
@@ -62,3 +67,6 @@ routes.patch('/medications/prescriptions/:id/suspend', medicationController.susp
 routes.patch('/medications/doses/:id/administer', medicationController.administer);
 
 routes.get('/hospitalizations/:id/timeline', timelineController.get);
+routes.post('/hospitalizations/:id/timeline/events', timelineController.createEvent);
+routes.put('/hospitalizations/:id/timeline/events/:eventId', timelineController.updateEvent);
+routes.delete('/hospitalizations/:id/timeline/events/:eventId', timelineController.removeEvent);

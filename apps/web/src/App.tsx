@@ -10,9 +10,12 @@ import { ProceduresPage } from './pages/ProceduresPage';
 import { MedicationsPage } from './pages/MedicationsPage';
 import { HospitalizationTimelinePage } from './pages/HospitalizationTimelinePage';
 import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { ClinicSettingsProvider } from './contexts/ClinicSettingsContext';
 
 export default function App() {
   return (
+    <ClinicSettingsProvider>
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout />}>
@@ -38,14 +41,12 @@ export default function App() {
 
           <Route path="/relatorios" element={<ReportsPage />} />
 
-          <Route
-            path="/configuracoes"
-            element={<PlaceholderPage title="Configurações" />}
-          />
+          <Route path="/configuracoes" element={<SettingsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
+    </ClinicSettingsProvider>
   );
 }

@@ -99,6 +99,7 @@ model Hospitalization {
   procedures      Procedure[]
   prescriptions   MedicationPrescription[]
   medicationDoses MedicationDose[]
+  clinicalEvents  ClinicalEvent[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -171,4 +172,50 @@ model MedicationDose {
   @@index([prescriptionId])
   @@index([status])
   @@index([scheduledAt])
+}
+
+
+model ClinicalEvent {
+  id                String          @id @default(cuid())
+  hospitalizationId String
+  hospitalization   Hospitalization @relation(fields: [hospitalizationId], references: [id], onDelete: Cascade)
+  type              String          @default("EVOLUTION")
+  title             String
+  description       String
+  responsible       String?
+  eventAt           DateTime        @default(now())
+  temperature       Float?
+  heartRate         Int?
+  respiratoryRate   Int?
+  weight            Float?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([hospitalizationId])
+  @@index([type])
+  @@index([eventAt])
+}
+
+model ClinicSettings {
+  id                 String   @id @default("clinic")
+  name               String   @default("PetLife São Caetano")
+  legalName          String?
+  cnpj               String?
+  phone              String?
+  whatsapp           String?
+  email              String?
+  address            String?
+  city               String?
+  state              String?
+  zipCode             String?
+  logoDataUrl         String?
+  openingHours        String?
+  sectorsJson         String   @default("[]")
+  prioritiesJson      String   @default("[]")
+  speciesJson         String   @default("[]")
+  medicationRoutesJson String  @default("[]")
+  theme               String   @default("light")
+  tagline             String   @default("Cuidando com amor, tratando com excelência.")
+  updatedAt           DateTime @updatedAt
+  createdAt           DateTime @default(now())
 }

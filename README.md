@@ -84,3 +84,41 @@ A aplicação atualmente abre diretamente no dashboard, sem tela de login.
 - Exportação em CSV e Excel compatível (`.xls`).
 - Geração de PDF usando a caixa de impressão do navegador (“Salvar como PDF”).
 - Relatórios com identidade visual da PetLife.
+
+
+## Fase 5.4 — Timeline clínica
+
+- Prontuário cronológico unificado por internação.
+- Evoluções, observações e sinais vitais manuais.
+- Edição e exclusão de registros clínicos.
+- Filtros, pesquisa, indicadores e impressão do prontuário.
+- Integração automática com procedimentos, medicações, internação e alta.
+
+
+## Fase 5.5 — Central de notificações
+
+- Sino de alertas no cabeçalho com contador em tempo real.
+- Alertas de doses atrasadas e próximas, procedimentos atrasados, pacientes críticos, altas previstas e leitos disponíveis.
+- Atualização automática a cada minuto.
+- Navegação direta para o módulo relacionado.
+- Possibilidade de ocultar alertas localmente e restaurá-los depois.
+
+
+## Fase 6 — Dashboard em tempo real
+
+- Atualização automática do dashboard a cada 30 segundos.
+- Indicadores operacionais, ocupação e prioridades.
+- Tendência clínica dos últimos 7 dias.
+- Agenda de procedimentos e medicações.
+- Últimas movimentações do sistema.
+- Painel de pacientes prioritários e alertas.
+
+## Fase 7.1 — Configurações da Clínica
+
+- Dados cadastrais e contatos da clínica
+- Upload e persistência do logotipo
+- Horário de funcionamento e frase institucional
+- Listas configuráveis de setores, prioridades, espécies e vias de administração
+- Tema claro, escuro ou sincronizado com o sistema
+- Nome, logotipo e rodapé aplicados automaticamente no layout e nos relatórios
+- Endpoint `GET /api/v1/settings` e `PUT /api/v1/settings`

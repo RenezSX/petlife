@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 import type { ReportData, ReportType } from '../types';
+import { useClinicSettings } from '../contexts/ClinicSettingsContext';
 
 const reportOptions: Array<{ value: ReportType; label: string; description: string; icon: typeof BarChart3; dated: boolean }> = [
   { value: 'hospitalizations', label: 'Internações', description: 'Entradas, altas, prioridade, setor e responsável.', icon: Stethoscope, dated: true },
@@ -79,31 +80,31 @@ function exportCsv(report: ReportData) {
   download(`\uFEFF${[header, ...rows].join('\r\n')}`, 'text/csv;charset=utf-8', fileName(report.type, 'csv'));
 }
 
-function tableHtml(report: ReportData, printable = false) {
+function tableHtml(report: ReportData, clinic: { name: string; tagline: string; openingHours?: string | null; logoDataUrl?: string | null }, printable = false) {
   const summary = Object.entries(report.summary)
     .map(([key, value]) => `<div><span>${htmlEscape(key)}</span><strong>${htmlEscape(value)}</strong></div>`)
     .join('');
   const headings = report.columns.map((column) => `<th>${htmlEscape(column.label)}</th>`).join('');
   const rows = report.rows.map((row) => `<tr>${report.columns.map((column) => `<td>${htmlEscape(row[column.key])}</td>`).join('')}</tr>`).join('');
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>PetLife - ${htmlEscape(report.title)}</title><style>
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${htmlEscape(clinic.name)} - ${htmlEscape(report.title)}</title><style>
     *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#17323c;margin:${printable ? '22px' : '0'};font-size:12px}
     header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #087f91;padding-bottom:13px;margin-bottom:18px}
     h1{margin:0;color:#087f91;font-size:24px}.brand{font-weight:800;color:#ed751b}.muted{color:#71838a;font-size:11px}
     .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:17px}.summary div{border:1px solid #dfeaec;border-radius:8px;padding:8px 11px;min-width:100px}.summary span{display:block;color:#71838a;font-size:9px;text-transform:uppercase}.summary strong{font-size:16px;color:#17323c}
     table{width:100%;border-collapse:collapse}th{background:#087f91;color:white;text-align:left;padding:8px;font-size:10px}td{border-bottom:1px solid #e3ecef;padding:7px;vertical-align:top}tr:nth-child(even) td{background:#f7fafb}
     footer{margin-top:18px;color:#7b8e95;font-size:9px;text-align:center}@media print{body{margin:0}@page{size:landscape;margin:12mm}}
-  </style></head><body><header><div><div class="brand">PETLIFE SÃO CAETANO</div><h1>${htmlEscape(report.title)}</h1><div class="muted">Relatório gerado em ${new Date(report.generatedAt).toLocaleString('pt-BR')}</div></div><div class="muted">Clínica Veterinária 24h</div></header><section class="summary">${summary}</section><table><thead><tr>${headings}</tr></thead><tbody>${rows || `<tr><td colspan="${report.columns.length}">Nenhum registro encontrado.</td></tr>`}</tbody></table><footer>PetLife São Caetano • Cuidando com amor, tratando com excelência.</footer></body></html>`;
+  </style></head><body><header><div><div class="brand">${clinic.logoDataUrl ? `<img src="${htmlEscape(clinic.logoDataUrl)}" alt="Logo" style="max-height:42px;max-width:180px;object-fit:contain"/>` : htmlEscape(clinic.name.toUpperCase())}</div><h1>${htmlEscape(report.title)}</h1><div class="muted">Relatório gerado em ${new Date(report.generatedAt).toLocaleString('pt-BR')}</div></div><div class="muted">${htmlEscape(clinic.openingHours || "Clínica Veterinária")}</div></header><section class="summary">${summary}</section><table><thead><tr>${headings}</tr></thead><tbody>${rows || `<tr><td colspan="${report.columns.length}">Nenhum registro encontrado.</td></tr>`}</tbody></table><footer>${htmlEscape(clinic.name)} • ${htmlEscape(clinic.tagline)}</footer></body></html>`;
 }
 
-function exportExcel(report: ReportData) {
-  download(`\uFEFF${tableHtml(report)}`, 'application/vnd.ms-excel;charset=utf-8', fileName(report.type, 'xls'));
+function exportExcel(report: ReportData, clinic: { name: string; tagline: string; openingHours?: string | null; logoDataUrl?: string | null }) {
+  download(`\uFEFF${tableHtml(report, clinic)}`, 'application/vnd.ms-excel;charset=utf-8', fileName(report.type, 'xls'));
 }
 
-function printPdf(report: ReportData) {
+function printPdf(report: ReportData, clinic: { name: string; tagline: string; openingHours?: string | null; logoDataUrl?: string | null }) {
   const popup = window.open('', '_blank', 'width=1200,height=800');
   if (!popup) return;
   popup.document.open();
-  popup.document.write(tableHtml(report, true));
+  popup.document.write(tableHtml(report, clinic, true));
   popup.document.close();
   popup.focus();
   window.setTimeout(() => popup.print(), 350);
@@ -119,6 +120,8 @@ function summaryLabel(key: string) {
 }
 
 export function ReportsPage() {
+  const { settings } = useClinicSettings();
+  const clinic = { name: settings?.name ?? 'PetLife São Caetano', tagline: settings?.tagline ?? 'Cuidando com amor, tratando com excelência.', openingHours: settings?.openingHours, logoDataUrl: settings?.logoDataUrl };
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = `${today.slice(0, 8)}01`;
   const [type, setType] = useState<ReportType>('hospitalizations');
@@ -192,8 +195,8 @@ export function ReportsPage() {
               <div><p className="eyebrow">VISUALIZAÇÃO</p><h2>{report.title}</h2><span>Gerado em {new Date(report.generatedAt).toLocaleString('pt-BR')}</span></div>
               <div className="report-export-actions">
                 <button type="button" className="secondary-button button-with-icon" onClick={() => exportCsv(report)}><Download />CSV</button>
-                <button type="button" className="secondary-button button-with-icon" onClick={() => exportExcel(report)}><FileSpreadsheet />Excel</button>
-                <button type="button" className="primary-button button-with-icon" onClick={() => printPdf(report)}><Printer />PDF / Imprimir</button>
+                <button type="button" className="secondary-button button-with-icon" onClick={() => exportExcel(report, clinic)}><FileSpreadsheet />Excel</button>
+                <button type="button" className="primary-button button-with-icon" onClick={() => printPdf(report, clinic)}><Printer />PDF / Imprimir</button>
               </div>
             </div>
 
