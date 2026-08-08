@@ -147,7 +147,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'tutors',
       label: 'Tutores',
-      items: tutors.map((item) => ({
+      items: tutors.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'tutor',
         title: item.name,
@@ -159,7 +159,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'animals',
       label: 'Animais',
-      items: animals.map((item) => ({
+      items: animals.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'animal',
         title: item.name,
@@ -171,7 +171,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'hospitalizations',
       label: 'Internações',
-      items: hospitalizations.map((item) => ({
+      items: hospitalizations.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'hospitalization',
         title: item.animal.name,
@@ -183,7 +183,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'beds',
       label: 'Leitos',
-      items: beds.map((item) => ({
+      items: beds.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'bed',
         title: item.name,
@@ -195,7 +195,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'procedures',
       label: 'Procedimentos',
-      items: procedures.map((item) => ({
+      items: procedures.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'procedure',
         title: item.title,
@@ -207,7 +207,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'medications',
       label: 'Medicações',
-      items: medications.map((item) => ({
+      items: medications.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'medication',
         title: item.medication,
