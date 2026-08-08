@@ -9,9 +9,6 @@ type BrandLogoProps = {
 
 export function BrandLogo({ compact = false, light = false, name = 'PetLife', logoDataUrl }: BrandLogoProps) {
   const normalized = name.trim() || 'PetLife';
-  const parts = normalized.split(/\s+/);
-  const first = parts.shift() ?? normalized;
-  const rest = parts.join(' ');
 
   return (
     <div className={`brand-logo ${compact ? 'brand-logo-compact' : ''} ${light ? 'brand-logo-light' : ''}`}>
@@ -24,7 +21,9 @@ export function BrandLogo({ compact = false, light = false, name = 'PetLife', lo
         </span>
       )}
       <span className="brand-wordmark">
-        <strong>{first.toUpperCase()}</strong>{rest && <b>{rest.toUpperCase()}</b>}
+        <span className="brand-name-line">
+          <strong>PETLIFE</strong>
+        </span>
         {!compact && <small>CLÍNICA VETERINÁRIA</small>}
       </span>
     </div>

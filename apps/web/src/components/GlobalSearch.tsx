@@ -8,6 +8,7 @@ import {
   Pill,
   Search,
   UserRound,
+  Stethoscope,
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -23,6 +24,7 @@ const typeIcons = {
   bed: BedDouble,
   procedure: ClipboardList,
   medication: Pill,
+  professional: Stethoscope,
 };
 
 function loadRecentSearches() {

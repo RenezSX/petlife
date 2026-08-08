@@ -10,6 +10,7 @@ type HospitalizationInput = {
   reason: string;
   diagnosis?: string;
   veterinarian?: string;
+  professionalId?: string;
   notes?: string;
   admittedAt?: string;
   expectedDischargeAt?: string;
@@ -82,22 +83,31 @@ function normalize(data: HospitalizationInput) {
     reason: data.reason.trim(),
     diagnosis: clean(data.diagnosis),
     veterinarian: clean(data.veterinarian),
+    professionalId: clean(data.professionalId),
     notes: clean(data.notes),
     ...(data.admittedAt ? { admittedAt: new Date(data.admittedAt) } : {}),
     expectedDischargeAt: data.expectedDischargeAt ? new Date(data.expectedDischargeAt) : null,
   };
 }
 
+async function normalizeWithProfessional(data: HospitalizationInput) {
+  const normalized = normalize(data);
+  if (!data.professionalId) return normalized;
+  const professional = await prisma.professional.findUnique({ where: { id: data.professionalId } });
+  if (!professional || !professional.active || professional.role !== 'VETERINARIAN') throw new AppError(400, 'Selecione um veterinário ativo.');
+  return { ...normalized, professionalId: professional.id, veterinarian: professional.name };
+}
+
 export async function createHospitalization(data: HospitalizationInput) {
   await validateAvailability(data);
-  return prisma.hospitalization.create({ data: normalize(data), include: { animal: { include: { tutor: true } }, bed: true } });
+  return prisma.hospitalization.create({ data: await normalizeWithProfessional(data), include: { animal: { include: { tutor: true } }, bed: true } });
 }
 
 export async function updateHospitalization(id: string, data: HospitalizationInput) {
   const current = await getHospitalization(id);
   if (current.dischargedAt) throw new AppError(409, 'Uma internação finalizada não pode ser alterada.');
   await validateAvailability(data, id);
-  return prisma.hospitalization.update({ where: { id }, data: normalize(data), include: { animal: { include: { tutor: true } }, bed: true } });
+  return prisma.hospitalization.update({ where: { id }, data: await normalizeWithProfessional(data), include: { animal: { include: { tutor: true } }, bed: true } });
 }
 
 export async function dischargeHospitalization(id: string, summary: string, dischargedAt?: string) {
@@ -111,7 +121,7 @@ export async function dischargeHospitalization(id: string, summary: string, disc
 }
 
 export async function listHospitalizationOptions() {
-  const [animals, beds] = await Promise.all([
+  const [animals, beds, professionals] = await Promise.all([
     prisma.animal.findMany({
       where: { active: true, hospitalizations: { none: { dischargedAt: null } } },
       select: { id: true, name: true, species: true, tutor: { select: { id: true, name: true } } },
@@ -122,8 +132,13 @@ export async function listHospitalizationOptions() {
       select: { id: true, name: true, sector: true },
       orderBy: [{ sector: 'asc' }, { name: 'asc' }],
     }),
+    prisma.professional.findMany({
+      where: { active: true, role: 'VETERINARIAN' },
+      select: { id: true, name: true, crmv: true, specialty: true },
+      orderBy: { name: 'asc' },
+    }),
   ]);
-  return { animals, beds };
+  return { animals, beds, professionals };
 }
 
 export async function getHospitalizationStats() {

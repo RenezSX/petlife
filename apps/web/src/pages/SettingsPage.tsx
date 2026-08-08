@@ -1,12 +1,72 @@
-import { Building2, CheckCircle2, ImagePlus, Moon, Plus, Save, Sun, Trash2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  Database,
+  Download,
+  FileJson,
+  History,
+  ImagePlus,
+  Moon,
+  Plus,
+  RotateCcw,
+  Save,
+  Sun,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Modal } from '../components/Modal';
 import { useClinicSettings, type ClinicSettings } from '../contexts/ClinicSettingsContext';
+import { api } from '../services/api';
 
 type EditableListProps = {
   title: string;
   description: string;
   values: string[];
   onChange: (values: string[]) => void;
+};
+
+type BackupLog = {
+  id: string;
+  action: 'EXPORT' | 'IMPORT';
+  fileName: string;
+  createdAt: string;
+  counts: Record<string, number>;
+};
+
+type BackupInfo = {
+  version: string;
+  lastBackup: Omit<BackupLog, 'counts'> | null;
+  lastRestore: Omit<BackupLog, 'counts'> | null;
+  history: BackupLog[];
+};
+
+type BackupPreview = {
+  fileName: string;
+  payload: {
+    metadata: {
+      app: string;
+      version: string;
+      schemaVersion: number;
+      createdAt: string;
+      counts: Record<string, number>;
+    };
+    data: Record<string, unknown[]>;
+  };
+};
+
+const countLabels: Record<string, string> = {
+  users: 'Usuários',
+  tutors: 'Tutores',
+  animals: 'Animais',
+  beds: 'Leitos',
+  hospitalizations: 'Internações',
+  procedures: 'Procedimentos',
+  medicationPrescriptions: 'Prescrições',
+  medicationDoses: 'Doses',
+  clinicalEvents: 'Registros clínicos',
+  clinicSettings: 'Configurações',
 };
 
 function EditableList({ title, description, values, onChange }: EditableListProps) {
@@ -40,12 +100,28 @@ const blank: Omit<ClinicSettings, 'id'> = {
   openingHours: 'Atendimento 24 horas', sectors: [], priorities: [], species: [], medicationRoutes: [], theme: 'light', tagline: 'Cuidando com amor, tratando com excelência.',
 };
 
+function formatDate(value?: string | null) {
+  if (!value) return 'Ainda não realizado';
+  return new Date(value).toLocaleString('pt-BR');
+}
+
+function getFileName(contentDisposition?: string) {
+  const match = contentDisposition?.match(/filename="?([^";]+)"?/i);
+  return match?.[1] ?? `petlife-backup-${new Date().toISOString().slice(0, 10)}.json`;
+}
+
 export function SettingsPage() {
-  const { settings, loading, save } = useClinicSettings();
+  const { settings, loading, save, setTheme } = useClinicSettings();
   const [form, setForm] = useState(blank);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [backupInfo, setBackupInfo] = useState<BackupInfo | null>(null);
+  const [backupLoading, setBackupLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [backupPreview, setBackupPreview] = useState<BackupPreview | null>(null);
+  const [restoreConfirmed, setRestoreConfirmed] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -54,8 +130,24 @@ export function SettingsPage() {
     }
   }, [settings]);
 
+  useEffect(() => {
+    void loadBackupInfo();
+  }, []);
+
   function field<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function loadBackupInfo() {
+    try {
+      setBackupLoading(true);
+      const response = await api.get<BackupInfo>('/backup/info');
+      setBackupInfo(response.data);
+    } catch (loadError) {
+      console.error('Erro ao carregar informações de backup:', loadError);
+    } finally {
+      setBackupLoading(false);
+    }
   }
 
   function readLogo(event: ChangeEvent<HTMLInputElement>) {
@@ -78,6 +170,77 @@ export function SettingsPage() {
       setError(submitError?.response?.data?.message ?? 'Não foi possível salvar as configurações.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function exportBackup() {
+    try {
+      setExporting(true);
+      setError('');
+      setMessage('');
+      const response = await api.get('/backup/export', { responseType: 'blob' });
+      const fileName = getFileName(response.headers['content-disposition']);
+      const url = URL.createObjectURL(response.data);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setMessage('Backup criado e baixado com sucesso.');
+      await loadBackupInfo();
+    } catch (exportError: any) {
+      setError(exportError?.response?.data?.message ?? 'Não foi possível criar o backup.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function selectBackupFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.json')) {
+      setError('Selecione um arquivo de backup no formato JSON.');
+      return;
+    }
+    if (file.size > 20_000_000) {
+      setError('O arquivo de backup deve ter no máximo 20 MB.');
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(await file.text()) as BackupPreview['payload'];
+      if (payload?.metadata?.app !== 'PetLife' || !payload.data || typeof payload.data !== 'object') {
+        throw new Error('invalid');
+      }
+      setError('');
+      setRestoreConfirmed(false);
+      setBackupPreview({ fileName: file.name, payload });
+    } catch {
+      setError('O arquivo selecionado não é um backup válido do PetLife.');
+    }
+  }
+
+  async function restoreBackup() {
+    if (!backupPreview || !restoreConfirmed) return;
+    try {
+      setRestoring(true);
+      setError('');
+      const response = await api.post('/backup/import', {
+        fileName: backupPreview.fileName,
+        backup: backupPreview.payload,
+      });
+      setBackupPreview(null);
+      setRestoreConfirmed(false);
+      setMessage(response.data.message ?? 'Backup restaurado com sucesso.');
+      await loadBackupInfo();
+      window.setTimeout(() => window.location.reload(), 900);
+    } catch (restoreError: any) {
+      setError(restoreError?.response?.data?.message ?? 'Não foi possível restaurar o backup.');
+    } finally {
+      setRestoring(false);
     }
   }
 
@@ -119,9 +282,9 @@ export function SettingsPage() {
         <article className="panel settings-section">
           <div className="settings-section-title"><Sun/><div><h2>Aparência</h2><p>Defina o tema padrão utilizado neste navegador.</p></div></div>
           <div className="theme-options">
-            <button type="button" className={form.theme === 'light' ? 'active' : ''} onClick={() => field('theme', 'light')}><Sun/><strong>Claro</strong><span>Interface clara e luminosa.</span></button>
-            <button type="button" className={form.theme === 'dark' ? 'active' : ''} onClick={() => field('theme', 'dark')}><Moon/><strong>Escuro</strong><span>Mais confortável à noite.</span></button>
-            <button type="button" className={form.theme === 'system' ? 'active' : ''} onClick={() => field('theme', 'system')}><Building2/><strong>Sistema</strong><span>Segue o Windows ou navegador.</span></button>
+            <button type="button" className={form.theme === 'light' ? 'active' : ''} onClick={() => { field('theme', 'light'); void setTheme('light'); }}><Sun/><strong>Claro</strong><span>Interface clara e luminosa.</span></button>
+            <button type="button" className={form.theme === 'dark' ? 'active' : ''} onClick={() => { field('theme', 'dark'); void setTheme('dark'); }}><Moon/><strong>Escuro</strong><span>Mais confortável à noite.</span></button>
+            <button type="button" className={form.theme === 'system' ? 'active' : ''} onClick={() => { field('theme', 'system'); void setTheme('system'); }}><Building2/><strong>Sistema</strong><span>Segue o Windows ou navegador.</span></button>
           </div>
         </article>
       </section>
@@ -133,7 +296,45 @@ export function SettingsPage() {
         <EditableList title="Vias de administração" description="Opções utilizadas nas prescrições." values={form.medicationRoutes} onChange={(values) => field('medicationRoutes', values)}/>
       </section>
 
+      <section className="panel backup-section">
+        <div className="settings-section-title"><Database/><div><h2>Backup e restauração</h2><p>Proteja os dados da clínica e restaure uma cópia quando necessário.</p></div></div>
+        <div className="backup-overview-grid">
+          <article><Download/><div><span>Último backup</span><strong>{backupLoading ? 'Carregando...' : formatDate(backupInfo?.lastBackup?.createdAt)}</strong><small>{backupInfo?.lastBackup?.fileName ?? 'Nenhum arquivo exportado'}</small></div></article>
+          <article><RotateCcw/><div><span>Última restauração</span><strong>{backupLoading ? 'Carregando...' : formatDate(backupInfo?.lastRestore?.createdAt)}</strong><small>{backupInfo?.lastRestore?.fileName ?? 'Nenhuma restauração realizada'}</small></div></article>
+          <article><FileJson/><div><span>Formato atual</span><strong>PetLife v{backupInfo?.version ?? '2.2.0'}</strong><small>Arquivo JSON com relacionamentos preservados</small></div></article>
+        </div>
+        <div className="backup-actions">
+          <button type="button" className="primary-button button-with-icon" onClick={() => void exportBackup()} disabled={exporting || restoring}><Download size={18}/>{exporting ? 'Criando backup...' : 'Criar e baixar backup'}</button>
+          <label className="secondary-button button-with-icon backup-upload"><Upload size={18}/>Selecionar backup<input type="file" accept="application/json,.json" onChange={(event) => void selectBackupFile(event)} disabled={exporting || restoring}/></label>
+        </div>
+        <div className="backup-warning"><AlertTriangle size={20}/><div><strong>Antes de restaurar</strong><p>A restauração substituirá os dados atuais. Crie um backup recente antes de continuar.</p></div></div>
+
+        {backupInfo?.history?.length ? (
+          <div className="backup-history">
+            <div className="backup-history-title"><History size={18}/><h3>Atividades recentes</h3></div>
+            {backupInfo.history.slice(0, 5).map((item) => (
+              <article key={item.id}><span className={item.action === 'EXPORT' ? 'backup-action-export' : 'backup-action-import'}>{item.action === 'EXPORT' ? 'Backup' : 'Restauração'}</span><div><strong>{item.fileName}</strong><small>{formatDate(item.createdAt)}</small></div><b>{Object.values(item.counts).reduce((total, value) => total + value, 0)} registros</b></article>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       <div className="settings-sticky-save"><button className="primary-button button-with-icon" disabled={saving}><Save size={18}/>{saving ? 'Salvando...' : 'Salvar configurações'}</button></div>
+
+      {backupPreview && (
+        <Modal title="Restaurar backup?" subtitle={backupPreview.fileName} onClose={() => { if (!restoring) setBackupPreview(null); }} wide>
+          <div className="restore-alert"><AlertTriangle size={27}/><div><strong>Esta ação substituirá todos os dados atuais.</strong><p>Os registros abaixo serão restaurados. Dados criados depois deste backup serão removidos.</p></div></div>
+          <div className="backup-preview-meta"><span>Versão <strong>{backupPreview.payload.metadata.version}</strong></span><span>Criado em <strong>{formatDate(backupPreview.payload.metadata.createdAt)}</strong></span></div>
+          <div className="backup-count-grid">
+            {Object.entries(backupPreview.payload.metadata.counts).map(([key, value]) => <article key={key}><span>{countLabels[key] ?? key}</span><strong>{value}</strong></article>)}
+          </div>
+          <label className="restore-confirm-check"><input type="checkbox" checked={restoreConfirmed} onChange={(event) => setRestoreConfirmed(event.target.checked)}/><span>Entendo que os dados atuais serão substituídos por este backup.</span></label>
+          <div className="form-footer">
+            <button type="button" className="secondary-button" onClick={() => setBackupPreview(null)} disabled={restoring}>Cancelar</button>
+            <button type="button" className="danger-button button-with-icon" onClick={() => void restoreBackup()} disabled={!restoreConfirmed || restoring}><RotateCcw size={18}/>{restoring ? 'Restaurando...' : 'Confirmar restauração'}</button>
+          </div>
+        </Modal>
+      )}
     </form>
   );
 }

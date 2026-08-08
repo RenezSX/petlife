@@ -4,7 +4,7 @@ const LIMIT_PER_GROUP = 6;
 
 export type GlobalSearchItem = {
   id: string;
-  type: 'tutor' | 'animal' | 'hospitalization' | 'bed' | 'procedure' | 'medication';
+  type: 'tutor' | 'animal' | 'hospitalization' | 'bed' | 'procedure' | 'medication' | 'professional';
   title: string;
   subtitle: string;
   meta?: string;
@@ -20,7 +20,7 @@ export async function globalSearch(rawQuery: string) {
 
   const numericQuery = query.replace(/\D/g, '');
 
-  const [tutors, animals, hospitalizations, beds, procedures, medications] = await Promise.all([
+  const [tutors, animals, hospitalizations, beds, procedures, medications, professionals] = await Promise.all([
     prisma.tutor.findMany({
       where: {
         OR: [
@@ -141,6 +141,13 @@ export async function globalSearch(rawQuery: string) {
       orderBy: { createdAt: 'desc' },
       take: LIMIT_PER_GROUP,
     }),
+    prisma.professional.findMany({
+      where: { OR: [
+        { name: { contains: query } }, { crmv: { contains: query } }, { specialty: { contains: query } }, { phone: { contains: query } }, { email: { contains: query } },
+      ] },
+      select: { id: true, name: true, role: true, crmv: true, specialty: true, active: true },
+      orderBy: { name: 'asc' }, take: LIMIT_PER_GROUP,
+    }),
   ]);
 
   const groups: Array<{ key: string; label: string; items: GlobalSearchItem[] }> = [
@@ -202,6 +209,18 @@ export async function globalSearch(rawQuery: string) {
         subtitle: `${item.hospitalization.animal.name} • ${item.scheduledAt.toLocaleString('pt-BR')}`,
         meta: item.status,
         href: '/procedimentos',
+      })),
+    },
+    {
+      key: 'professionals',
+      label: 'Profissionais',
+      items: professionals.map((item) => ({
+        id: item.id,
+        type: 'professional',
+        title: item.name,
+        subtitle: `${item.specialty || item.role}${item.crmv ? ` • ${item.crmv}` : ''}`,
+        meta: item.active ? 'Ativo' : 'Inativo',
+        href: '/profissionais',
       })),
     },
     {
