@@ -18,6 +18,25 @@ model User {
   updatedAt    DateTime @updatedAt
 }
 
+
+model Professional {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  crmv      String?  @unique
+  specialty String?
+  phone     String?
+  email     String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([role])
+  @@index([active])
+}
+
 model Tutor {
   id        String   @id @default(cuid())
   name      String
@@ -91,6 +110,7 @@ model Hospitalization {
   reason          String
   diagnosis       String?
   veterinarian    String?
+  professionalId  String?
   notes            String?
   admittedAt      DateTime         @default(now())
   expectedDischargeAt DateTime?
@@ -108,6 +128,7 @@ model Hospitalization {
   @@index([animalId])
   @@index([bedId])
   @@index([admittedAt])
+  @@index([professionalId])
 }
 
 model Procedure {
@@ -118,6 +139,7 @@ model Procedure {
   description       String?
   status            String          @default("PENDING")
   responsible       String?
+  professionalId    String?
   scheduledAt       DateTime
   completedAt       DateTime?
   notes             String?
@@ -127,6 +149,7 @@ model Procedure {
   @@index([hospitalizationId])
   @@index([status])
   @@index([scheduledAt])
+  @@index([professionalId])
 }
 
 model MedicationPrescription {
@@ -218,4 +241,35 @@ model ClinicSettings {
   tagline             String   @default("Cuidando com amor, tratando com excelência.")
   updatedAt           DateTime @updatedAt
   createdAt           DateTime @default(now())
+}
+
+
+model BackupLog {
+  id         String   @id @default(cuid())
+  action     String
+  fileName   String
+  countsJson String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id           String   @id
+  action       String
+  module       String
+  entity       String
+  entityId     String?
+  description  String
+  actor        String?  @default("Sistema interno")
+  beforeJson   String?
+  afterJson    String?
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([module])
+  @@index([action])
+  @@index([entityId])
 }

@@ -19,6 +19,7 @@ import { api } from '../services/api';
 import type {
   ProcedureItem,
   ProcedureStats,
+  ProfessionalOption,
 } from '../types';
 
 type HospitalizationOption = {
@@ -39,6 +40,7 @@ type ProcedureForm = {
   title: string;
   description: string;
   responsible: string;
+  professionalId: string;
   scheduledAt: string;
   notes: string;
 };
@@ -55,6 +57,7 @@ const emptyForm: ProcedureForm = {
   title: '',
   description: '',
   responsible: '',
+  professionalId: '',
   scheduledAt: '',
   notes: '',
 };
@@ -113,6 +116,7 @@ export function ProceduresPage() {
   const [items, setItems] = useState<ProcedureItem[]>([]);
   const [stats, setStats] = useState<ProcedureStats | null>(null);
   const [options, setOptions] = useState<HospitalizationOption[]>([]);
+  const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
@@ -138,6 +142,7 @@ export function ProceduresPage() {
         proceduresResponse,
         statsResponse,
         optionsResponse,
+        professionalsResponse,
       ] = await Promise.all([
         api.get('/procedures', {
           params: {
@@ -148,11 +153,9 @@ export function ProceduresPage() {
         }),
         api.get('/procedures/stats'),
         api.get('/hospitalizations', {
-  params: {
-    status: 'active',
-    pageSize: 100,
-  },
-})
+          params: { status: 'active', pageSize: 100 },
+        }),
+        api.get('/professionals/options'),
       ]);
 
       setItems(
@@ -163,11 +166,8 @@ export function ProceduresPage() {
 
       setStats(statsResponse.data);
 
-      setOptions(
-        normalizeArray<HospitalizationOption>(
-          optionsResponse.data,
-        ),
-      );
+      setOptions(normalizeArray<HospitalizationOption>(optionsResponse.data));
+      setProfessionals(normalizeArray<ProfessionalOption>(professionalsResponse.data));
     } catch (loadError) {
       console.error(
         'Erro ao carregar procedimentos:',
@@ -207,6 +207,7 @@ export function ProceduresPage() {
         title: item.title,
         description: item.description ?? '',
         responsible: item.responsible ?? '',
+        professionalId: item.professionalId ?? '',
         scheduledAt: toLocalDateTimeInput(
           item.scheduledAt,
         ),
@@ -263,8 +264,8 @@ export function ProceduresPage() {
         title: form.title.trim(),
         description:
           form.description.trim() || null,
-        responsible:
-          form.responsible.trim() || null,
+        responsible: form.responsible.trim() || null,
+        professionalId: form.professionalId || null,
         scheduledAt: new Date(
           form.scheduledAt,
         ).toISOString(),
@@ -678,16 +679,25 @@ export function ProceduresPage() {
               <label>
                 Responsável
 
-                <input
-                  value={form.responsible}
-                  onChange={(event) =>
+                <select
+                  value={form.professionalId}
+                  onChange={(event) => {
+                    const professional = professionals.find((item) => item.id === event.target.value);
                     setForm((current) => ({
                       ...current,
-                      responsible:
-                        event.target.value,
-                    }))
-                  }
-                />
+                      professionalId: event.target.value,
+                      responsible: professional?.name ?? current.responsible,
+                    }));
+                  }}
+                >
+                  <option value="">Não vinculado</option>
+                  {!form.professionalId && form.responsible && <option value="" disabled>{form.responsible} • cadastro antigo</option>}
+                  {professionals.map((professional) => (
+                    <option key={professional.id} value={professional.id}>
+                      {professional.name}{professional.crmv ? ` • ${professional.crmv}` : ''}{professional.specialty ? ` • ${professional.specialty}` : ''}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label>

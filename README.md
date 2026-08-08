@@ -122,3 +122,53 @@ A aplicação atualmente abre diretamente no dashboard, sem tela de login.
 - Tema claro, escuro ou sincronizado com o sistema
 - Nome, logotipo e rodapé aplicados automaticamente no layout e nos relatórios
 - Endpoint `GET /api/v1/settings` e `PUT /api/v1/settings`
+
+
+## Fase 7.2 — Backup e restauração
+
+- Exportação completa dos dados em arquivo JSON.
+- Restauração com validação de versão e pré-visualização dos registros.
+- Preservação dos relacionamentos entre tutores, animais, internações, procedimentos e medicações.
+- Histórico de backups e restaurações na tela de Configurações.
+- Endpoints `GET /api/v1/backup/export`, `GET /api/v1/backup/info` e `POST /api/v1/backup/import`.
+
+
+## Limpeza do banco
+
+Para iniciar o sistema sem dados operacionais de teste, execute:
+
+```bash
+npm run db:clean
+```
+
+O comando remove tutores, animais, leitos, internações, procedimentos, medicações, registros clínicos, logs de backup e usuários, preservando apenas as configurações da clínica.
+
+## Tema
+
+O sistema possui modo claro, escuro e automático. Além da tela de Configurações, o cabeçalho possui um botão para alternar rapidamente entre claro e escuro.
+
+## ✅ Fase 7.3 — Auditoria do Sistema
+
+- Registro automático das principais operações da API.
+- Histórico de cadastros, atualizações, mudanças de status, exclusões e restaurações.
+- Tela de auditoria com pesquisa, filtros por módulo, ação e período.
+- Indicadores de ações totais, ações do dia, cadastros, atualizações e exclusões.
+- Visualização dos detalhes registrados em cada operação.
+- Exportação dos registros exibidos em CSV.
+- Endpoints `GET /api/v1/audit`, `GET /api/v1/audit/stats` e `GET /api/v1/audit/:id`.
+
+## Fase 7.4 — Gestão de Profissionais
+- Cadastro, edição, pesquisa, filtros e ativação/inativação da equipe.
+- Funções de veterinário, auxiliar, recepção, banho e tosa e outros.
+- CRMV, especialidade e contatos.
+- Veterinários cadastrados podem ser vinculados às internações.
+- Profissionais cadastrados podem ser vinculados aos procedimentos.
+- Profissionais incluídos na Pesquisa Global, Auditoria, Backup e limpeza de dados.
+
+## Fase 7.5 — Polimento visual e UX
+- Melhorias de responsividade em formulários, tabelas e indicadores.
+- Estados de sucesso e feedback visual mais consistentes.
+- Foco visível para navegação por teclado.
+- Melhorias de hover e leitura das tabelas.
+- Respeito à preferência de redução de movimento do sistema operacional.
+- Ajustes para uso em celulares e tablets.

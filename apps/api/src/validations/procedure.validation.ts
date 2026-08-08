@@ -5,6 +5,7 @@ export const procedureBodySchema = z.object({
   title: z.string().trim().min(2, 'Informe o procedimento.'),
   description: z.string().trim().optional().default(''),
   responsible: z.string().trim().optional().default(''),
+  professionalId: z.string().trim().optional().default(''),
   scheduledAt: z.string().datetime(),
   notes: z.string().trim().optional().default(''),
 });

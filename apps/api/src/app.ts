@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env } from './config/env.js';
 import { routes } from './routes/index.js';
 import { errorHandler, notFound } from './middlewares/error-handler.js';
+import { auditMiddleware } from './middlewares/audit.js';
 
 export const app = express();
 app.use(helmet());
@@ -18,9 +19,10 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '25mb' }));
 app.use(morgan('dev'));
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'petlife-api' }));
+app.use(auditMiddleware);
 app.use('/api/v1', routes);
 app.use(notFound);
 app.use(errorHandler);

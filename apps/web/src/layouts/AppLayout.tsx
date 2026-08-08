@@ -2,12 +2,15 @@ import {
   BarChart3,
   BedDouble,
   ClipboardList,
+  History,
   LayoutDashboard,
   Menu,
+  Moon,
   PawPrint,
   Pill,
   Settings,
   Stethoscope,
+  Sun,
   Users,
   X
 } from 'lucide-react';
@@ -20,9 +23,15 @@ import { useClinicSettings } from '../contexts/ClinicSettingsContext';
 
 export function AppLayout() {
   const [open, setOpen] = useState(false);
-  const { settings } = useClinicSettings();
+  const { settings, setTheme, resolvedTheme } = useClinicSettings();
   const clinicName = settings?.name ?? 'PetLife São Caetano';
   const tagline = settings?.tagline ?? 'Cuidando com amor, tratando com excelência.';
+  const darkMode = resolvedTheme === 'dark';
+
+  function toggleTheme() {
+    const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    void setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+  }
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,6 +43,7 @@ export function AppLayout() {
     { to: '/tutores', label: 'Tutores', icon: Users },
     { to: '/profissionais', label: 'Profissionais', icon: Stethoscope },
     { to: '/relatorios', label: 'Relatórios', icon: BarChart3 },
+    { to: '/auditoria', label: 'Auditoria', icon: History },
     { to: '/configuracoes', label: 'Configurações', icon: Settings }
   ];
 
@@ -55,7 +65,7 @@ export function AppLayout() {
         <div className="clinic-card">
           <div className="clinic-card-icon"><Stethoscope size={20} /></div>
           <div><strong>{clinicName}</strong><span>{settings?.openingHours || 'Clínica Veterinária'}</span></div>
-          <small>Fase 7.1 • v2.1.0</small>
+          <small>Fase 7.5 • v2.5.0</small>
         </div>
       </aside>
 
@@ -64,6 +74,15 @@ export function AppLayout() {
           <button type="button" className="menu-button" onClick={() => setOpen((current) => !current)} aria-label="Abrir menu"><Menu /></button>
           <div className="topbar-title"><strong>{clinicName}</strong><span>Gestão veterinária</span></div>
           <GlobalSearch />
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={darkMode ? 'Ativar modo claro' : 'Ativar modo noturno'}
+            title={darkMode ? 'Modo claro' : 'Modo noturno'}
+          >
+            {darkMode ? <Sun size={19} /> : <Moon size={19} />}
+          </button>
           <NotificationCenter />
           <div className="user-chip">
             <span className="user-avatar">{clinicName.slice(0, 1).toUpperCase()}</span>

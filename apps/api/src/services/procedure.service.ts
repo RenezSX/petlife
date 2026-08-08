@@ -1,8 +1,15 @@
 import { prisma } from '../config/prisma.js';
 import { AppError } from '../utils/app-error.js';
 
-type ProcedureInput = { hospitalizationId:string; title:string; description?:string; responsible?:string; scheduledAt:string; notes?:string };
+type ProcedureInput = { hospitalizationId:string; title:string; description?:string; responsible?:string; professionalId?:string; scheduledAt:string; notes?:string };
 const clean=(v?:string)=>v?.trim()||null;
+async function professionalFields(data: ProcedureInput) {
+  if (!data.professionalId) return { professionalId: null, responsible: clean(data.responsible) };
+  const professional = await prisma.professional.findUnique({ where: { id: data.professionalId } });
+  if (!professional || !professional.active) throw new AppError(400, 'Selecione um profissional ativo.');
+  return { professionalId: professional.id, responsible: professional.name };
+}
+
 
 export async function listProcedures(query:Record<string,unknown>){
   const status=String(query.status??'all'); const date=String(query.date??''); const search=String(query.search??'').trim();
@@ -17,12 +24,14 @@ export async function listProcedures(query:Record<string,unknown>){
 export async function createProcedure(data:ProcedureInput){
   const hospitalization=await prisma.hospitalization.findUnique({where:{id:data.hospitalizationId}});
   if(!hospitalization||hospitalization.dischargedAt) throw new AppError(400,'Selecione uma internação ativa.');
-  return prisma.procedure.create({data:{hospitalizationId:data.hospitalizationId,title:data.title.trim(),description:clean(data.description),responsible:clean(data.responsible),scheduledAt:new Date(data.scheduledAt),notes:clean(data.notes)}});
+  const professional = await professionalFields(data);
+  return prisma.procedure.create({data:{hospitalizationId:data.hospitalizationId,title:data.title.trim(),description:clean(data.description),...professional,scheduledAt:new Date(data.scheduledAt),notes:clean(data.notes)}});
 }
 
 export async function updateProcedure(id:string,data:ProcedureInput){
   const item=await prisma.procedure.findUnique({where:{id}}); if(!item) throw new AppError(404,'Procedimento não encontrado.');
-  return prisma.procedure.update({where:{id},data:{title:data.title.trim(),description:clean(data.description),responsible:clean(data.responsible),scheduledAt:new Date(data.scheduledAt),notes:clean(data.notes)}});
+  const professional = await professionalFields(data);
+  return prisma.procedure.update({where:{id},data:{title:data.title.trim(),description:clean(data.description),...professional,scheduledAt:new Date(data.scheduledAt),notes:clean(data.notes)}});
 }
 
 export async function changeProcedureStatus(id:string,data:{status:string;responsible?:string;notes?:string}){

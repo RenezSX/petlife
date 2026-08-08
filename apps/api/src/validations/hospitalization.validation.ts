@@ -10,6 +10,7 @@ export const hospitalizationBodySchema = z.object({
   reason: z.string().trim().min(3, 'Informe o motivo da internação.'),
   diagnosis: optionalText,
   veterinarian: optionalText,
+  professionalId: optionalText,
   notes: optionalText,
   admittedAt: z.string().datetime().optional().or(z.literal('')),
   expectedDischargeAt: z.string().datetime().optional().or(z.literal('')),

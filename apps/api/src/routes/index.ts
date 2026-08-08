@@ -11,6 +11,9 @@ import * as searchController from '../controllers/search.controller.js';
 import * as reportController from '../controllers/report.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as settingsController from '../controllers/settings.controller.js';
+import * as backupController from '../controllers/backup.controller.js';
+import * as auditController from '../controllers/audit.controller.js';
+import * as professionalController from '../controllers/professional.controller.js';
 
 export const routes = Router();
 
@@ -20,6 +23,22 @@ routes.get('/reports', reportController.generate);
 routes.get('/notifications', notificationController.list);
 routes.get('/settings', settingsController.get);
 routes.put('/settings', settingsController.update);
+routes.get('/backup/export', backupController.exportBackup);
+routes.get('/backup/info', backupController.info);
+routes.post('/backup/import', backupController.importBackup);
+routes.get('/audit/stats', auditController.stats);
+routes.get('/audit', auditController.list);
+routes.get('/audit/:id', auditController.get);
+
+
+routes.get('/professionals/options', professionalController.options);
+routes.get('/professionals/stats', professionalController.stats);
+routes.get('/professionals', professionalController.list);
+routes.post('/professionals', professionalController.create);
+routes.get('/professionals/:id', professionalController.get);
+routes.put('/professionals/:id', professionalController.update);
+routes.patch('/professionals/:id/deactivate', professionalController.deactivate);
+routes.patch('/professionals/:id/reactivate', professionalController.reactivate);
 
 routes.get('/tutors/options', tutorController.options);
 routes.get('/tutors', tutorController.list);
