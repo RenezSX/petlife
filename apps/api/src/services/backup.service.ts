@@ -1,7 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { AppError } from '../utils/app-error.js';
 
-const BACKUP_VERSION = '2.5.0';
+const BACKUP_VERSION = '2.7.0';
 const BACKUP_SCHEMA_VERSION = 1;
 
 const dateFields: Record<string, string[]> = {

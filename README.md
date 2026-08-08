@@ -302,6 +302,19 @@ Endpoints disponíveis:
 
 ---
 
+
+## ✅ Fase 7.7 — Profissionais integrados aos fluxos clínicos
+
+- Correção do cadastro e edição de profissionais.
+- Mensagens de erro mais claras para CRMV duplicado e banco sem migration aplicada.
+- Veterinário responsável vinculado às internações.
+- Profissional responsável em procedimentos.
+- Profissional responsável nas prescrições de medicação.
+- Profissional responsável obrigatório no registro de administração de doses.
+- Profissional responsável em evoluções, observações e sinais vitais do prontuário.
+- Vínculos preservados por ID e nome para manter compatibilidade com registros antigos.
+- Integração automática com auditoria, relatórios, timeline e backup através dos dados já existentes.
+
 # ▶️ Como executar
 
 Na raiz do projeto:

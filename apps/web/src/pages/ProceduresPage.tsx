@@ -24,6 +24,8 @@ import type {
 
 type HospitalizationOption = {
   id: string;
+  professionalId?: string | null;
+  veterinarian?: string | null;
   animal: {
     name: string;
     tutor?: {
@@ -217,8 +219,13 @@ export function ProceduresPage() {
       return;
     }
 
+    const firstHospitalization = options[0];
+    const defaultProfessional = professionals.find((item) => item.id === firstHospitalization?.professionalId);
     setForm({
       ...emptyForm,
+      hospitalizationId: firstHospitalization?.id ?? '',
+      professionalId: firstHospitalization?.professionalId ?? '',
+      responsible: defaultProfessional?.name ?? firstHospitalization?.veterinarian ?? '',
       scheduledAt: toLocalDateTimeInput(
         new Date().toISOString(),
       ),
@@ -621,13 +628,16 @@ export function ProceduresPage() {
                   value={
                     form.hospitalizationId
                   }
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const hospitalization = options.find((item) => item.id === event.target.value);
+                    const professional = professionals.find((item) => item.id === hospitalization?.professionalId);
                     setForm((current) => ({
                       ...current,
-                      hospitalizationId:
-                        event.target.value,
-                    }))
-                  }
+                      hospitalizationId: event.target.value,
+                      professionalId: hospitalization?.professionalId ?? current.professionalId,
+                      responsible: professional?.name ?? hospitalization?.veterinarian ?? current.responsible,
+                    }));
+                  }}
                 >
                   <option value="">
                     Selecione o paciente

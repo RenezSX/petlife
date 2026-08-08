@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  CalendarDays,
   BedDouble,
   ClipboardList,
   History,
@@ -35,6 +36,7 @@ export function AppLayout() {
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/agenda', label: 'Agenda clínica', icon: CalendarDays },
     { to: '/internacoes', label: 'Internações', icon: BedDouble },
     { to: '/leitos', label: 'Leitos', icon: BedDouble },
     { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
@@ -65,7 +67,7 @@ export function AppLayout() {
         <div className="clinic-card">
           <div className="clinic-card-icon"><Stethoscope size={20} /></div>
           <div><strong>{clinicName}</strong><span>{settings?.openingHours || 'Clínica Veterinária'}</span></div>
-          <small>Fase 7.5 • v2.5.0</small>
+          <small>Fase 7.8 • v2.8.0</small>
         </div>
       </aside>
 

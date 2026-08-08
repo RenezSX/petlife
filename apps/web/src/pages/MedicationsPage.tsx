@@ -20,10 +20,13 @@ import type {
   MedicationDose,
   MedicationPrescription,
   MedicationStats,
+  ProfessionalOption,
 } from '../types';
 
 type HospitalizationOption = {
   id: string;
+  professionalId?: string | null;
+  veterinarian?: string | null;
   animal: {
     name: string;
     tutor?: {
@@ -45,11 +48,13 @@ type PrescriptionForm = {
   frequencyHours: number;
   startAt: string;
   endAt: string;
+  professionalId: string;
   notes: string;
 };
 
 type AdministrationForm = {
   status: string;
+  professionalId: string;
   administeredBy: string;
   notes: string;
 };
@@ -63,11 +68,13 @@ const emptyForm: PrescriptionForm = {
   frequencyHours: 8,
   startAt: '',
   endAt: '',
+  professionalId: '',
   notes: '',
 };
 
 const emptyAdministration: AdministrationForm = {
   status: 'ADMINISTERED',
+  professionalId: '',
   administeredBy: '',
   notes: '',
 };
@@ -150,6 +157,8 @@ export function MedicationsPage() {
     HospitalizationOption[]
   >([]);
 
+  const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
+
   const [tab, setTab] = useState<
     'agenda' | 'prescricoes'
   >('agenda');
@@ -183,6 +192,7 @@ export function MedicationsPage() {
         dosesResponse,
         statsResponse,
         optionsResponse,
+        professionalsResponse,
       ] = await Promise.all([
         api.get('/medications/prescriptions'),
         api.get('/medications/doses', {
@@ -190,11 +200,12 @@ export function MedicationsPage() {
         }),
         api.get('/medications/stats'),
         api.get('/hospitalizations', {
-  params: {
-    status: 'active',
-    pageSize: 100,
-  },
-})
+          params: {
+            status: 'active',
+            pageSize: 100,
+          },
+        }),
+        api.get('/professionals/options'),
       ]);
 
       setPrescriptions(
@@ -216,6 +227,12 @@ export function MedicationsPage() {
           optionsResponse.data,
         ),
       );
+
+      setProfessionals(
+        normalizeArray<ProfessionalOption>(
+          professionalsResponse.data,
+        ),
+      );
     } catch (loadError) {
       console.error(
         'Erro ao carregar medicações:',
@@ -225,6 +242,7 @@ export function MedicationsPage() {
       setPrescriptions([]);
       setDoses([]);
       setOptions([]);
+      setProfessionals([]);
 
       setError(
         'Não foi possível carregar as medicações.',
@@ -239,9 +257,11 @@ export function MedicationsPage() {
   }, [load]);
 
   function openPrescriptionModal() {
+    const firstHospitalization = options[0];
     setForm({
       ...emptyForm,
-      hospitalizationId: '',
+      hospitalizationId: firstHospitalization?.id ?? '',
+      professionalId: firstHospitalization?.professionalId ?? '',
       startAt: toLocalDateTimeInput(
         new Date().toISOString(),
       ),
@@ -307,6 +327,7 @@ export function MedicationsPage() {
         endAt: form.endAt
           ? new Date(form.endAt).toISOString()
           : null,
+        professionalId: form.professionalId || '',
         notes: form.notes.trim() || null,
       });
 
@@ -351,6 +372,7 @@ export function MedicationsPage() {
         `/medications/doses/${doseModal.id}/administer`,
         {
           status: administration.status,
+          professionalId: administration.professionalId || '',
           administeredBy:
             administration.administeredBy.trim(),
           notes: administration.notes.trim() || null,
@@ -671,6 +693,10 @@ export function MedicationsPage() {
                   </span>
                 </div>
 
+                <div className="agenda-meta">
+                  Profissional responsável: <strong>{prescription.responsible || 'Não definido'}</strong>
+                </div>
+
                 <dl>
                   <div>
                     <dt>Frequência</dt>
@@ -742,13 +768,14 @@ export function MedicationsPage() {
                 <select
                   required
                   value={form.hospitalizationId}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const hospitalization = options.find((item) => item.id === event.target.value);
                     setForm((current) => ({
                       ...current,
-                      hospitalizationId:
-                        event.target.value,
-                    }))
-                  }
+                      hospitalizationId: event.target.value,
+                      professionalId: hospitalization?.professionalId ?? current.professionalId,
+                    }));
+                  }}
                 >
                   <option value="">
                     Selecione o paciente
@@ -778,6 +805,27 @@ export function MedicationsPage() {
                       </option>
                     ),
                   )}
+                </select>
+              </label>
+
+              <label className="full">
+                Profissional responsável
+
+                <select
+                  value={form.professionalId}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      professionalId: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">Não definido</option>
+                  {professionals.map((professional) => (
+                    <option key={professional.id} value={professional.id}>
+                      {professional.name}{professional.crmv ? ` • ${professional.crmv}` : ''}{professional.specialty ? ` • ${professional.specialty}` : ''}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -1024,23 +1072,27 @@ export function MedicationsPage() {
               </label>
 
               <label>
-                Responsável *
+                Profissional responsável *
 
-                <input
+                <select
                   required
-                  value={
-                    administration.administeredBy
-                  }
-                  onChange={(event) =>
-                    setAdministration(
-                      (current) => ({
-                        ...current,
-                        administeredBy:
-                          event.target.value,
-                      }),
-                    )
-                  }
-                />
+                  value={administration.professionalId}
+                  onChange={(event) => {
+                    const professional = professionals.find((item) => item.id === event.target.value);
+                    setAdministration((current) => ({
+                      ...current,
+                      professionalId: event.target.value,
+                      administeredBy: professional?.name ?? '',
+                    }));
+                  }}
+                >
+                  <option value="">Selecione</option>
+                  {professionals.map((professional) => (
+                    <option key={professional.id} value={professional.id}>
+                      {professional.name}{professional.crmv ? ` • ${professional.crmv}` : ''}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="full">
@@ -1066,6 +1118,12 @@ export function MedicationsPage() {
               </label>
             </div>
 
+            {professionals.length === 0 && (
+              <div className="form-error">
+                Cadastre ao menos um profissional ativo antes de registrar doses.
+              </div>
+            )}
+
             {error && (
               <div className="form-error">
                 {error}
@@ -1085,7 +1143,7 @@ export function MedicationsPage() {
               <button
                 type="submit"
                 className="primary-button"
-                disabled={submitting}
+                disabled={submitting || !administration.professionalId}
               >
                 {submitting
                   ? 'Registrando...'

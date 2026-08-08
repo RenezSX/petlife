@@ -14,6 +14,16 @@ type ProfessionalInput = {
 
 const clean = (value?: string) => value?.trim() || null;
 
+function professionalDatabaseError(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === 'P2002') throw new AppError(409, 'Já existe um profissional com este CRMV.');
+    if (error.code === 'P2021' || error.code === 'P2022') {
+      throw new AppError(503, 'O banco ainda não possui a estrutura de profissionais. Execute npm run db:migrate e reinicie a API.');
+    }
+  }
+  throw error;
+}
+
 export async function listProfessionals(search: string, status: string, role: string, page: number, pageSize: number) {
   const where: Prisma.ProfessionalWhereInput = {
     ...(status === 'active' ? { active: true } : status === 'inactive' ? { active: false } : {}),
@@ -66,10 +76,14 @@ export async function createProfessional(data: ProfessionalInput) {
     const duplicate = await prisma.professional.findUnique({ where: { crmv: data.crmv.trim() } });
     if (duplicate) throw new AppError(409, 'Já existe um profissional com este CRMV.');
   }
-  return prisma.professional.create({ data: {
-    name: data.name.trim(), role: data.role, crmv: clean(data.crmv), specialty: clean(data.specialty),
-    phone: clean(data.phone), email: clean(data.email), notes: clean(data.notes),
-  }});
+  try {
+    return await prisma.professional.create({ data: {
+      name: data.name.trim(), role: data.role, crmv: clean(data.crmv), specialty: clean(data.specialty),
+      phone: clean(data.phone), email: clean(data.email), notes: clean(data.notes),
+    }});
+  } catch (error) {
+    professionalDatabaseError(error);
+  }
 }
 
 export async function updateProfessional(id: string, data: ProfessionalInput) {
@@ -78,10 +92,14 @@ export async function updateProfessional(id: string, data: ProfessionalInput) {
     const duplicate = await prisma.professional.findFirst({ where: { crmv: data.crmv.trim(), id: { not: id } } });
     if (duplicate) throw new AppError(409, 'Já existe um profissional com este CRMV.');
   }
-  return prisma.professional.update({ where: { id }, data: {
-    name: data.name.trim(), role: data.role, crmv: clean(data.crmv), specialty: clean(data.specialty),
-    phone: clean(data.phone), email: clean(data.email), notes: clean(data.notes),
-  }});
+  try {
+    return await prisma.professional.update({ where: { id }, data: {
+      name: data.name.trim(), role: data.role, crmv: clean(data.crmv), specialty: clean(data.specialty),
+      phone: clean(data.phone), email: clean(data.email), notes: clean(data.notes),
+    }});
+  } catch (error) {
+    professionalDatabaseError(error);
+  }
 }
 
 export async function setProfessionalActive(id: string, active: boolean) {

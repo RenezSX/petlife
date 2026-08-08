@@ -9,7 +9,11 @@ const roleLabels: Record<string, string> = {
   VETERINARIAN: 'Veterinário(a)', ASSISTANT: 'Auxiliar veterinário', RECEPTIONIST: 'Recepção', GROOMER: 'Banho e tosa', OTHER: 'Outro',
 };
 const empty = { name: '', role: 'VETERINARIAN', crmv: '', specialty: '', phone: '', email: '', notes: '' };
-function errorMessage(error: unknown) { const e = error as { response?: { data?: { message?: string } } }; return e.response?.data?.message ?? 'Não foi possível concluir a operação.'; }
+function errorMessage(error: unknown) {
+  const e = error as { response?: { data?: { message?: string; issues?: Record<string, string[]> } } };
+  const firstIssue = e.response?.data?.issues ? Object.values(e.response.data.issues).flat().find(Boolean) : undefined;
+  return firstIssue ?? e.response?.data?.message ?? 'Não foi possível concluir a operação.';
+}
 
 export function ProfessionalsPage() {
   const [data, setData] = useState<Paginated<Professional> | null>(null);

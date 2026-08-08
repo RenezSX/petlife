@@ -15,6 +15,7 @@ export const clinicalEventSchema = z.object({
   title: z.string().trim().min(2, 'Informe um título.').max(120),
   description: z.string().trim().min(2, 'Informe a descrição.').max(4000),
   responsible: z.string().trim().max(120).nullable().optional(),
+  professionalId: z.string().trim().nullable().optional(),
   eventAt: z.coerce.date(),
   temperature: nullableNumber.optional(),
   heartRate: nullableInteger.optional(),

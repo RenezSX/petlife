@@ -14,10 +14,12 @@ import * as settingsController from '../controllers/settings.controller.js';
 import * as backupController from '../controllers/backup.controller.js';
 import * as auditController from '../controllers/audit.controller.js';
 import * as professionalController from '../controllers/professional.controller.js';
+import * as agendaController from '../controllers/agenda.controller.js';
 
 export const routes = Router();
 
 routes.get('/dashboard/summary', dashboardController.summary);
+routes.get('/agenda', agendaController.list);
 routes.get('/search', searchController.search);
 routes.get('/reports', reportController.generate);
 routes.get('/notifications', notificationController.list);

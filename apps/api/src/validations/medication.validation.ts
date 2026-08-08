@@ -10,10 +10,15 @@ export const prescriptionBodySchema = z.object({
   startAt: z.string().datetime(),
   endAt: z.string().datetime().optional().or(z.literal('')),
   notes: z.string().trim().optional().default(''),
+  professionalId: z.string().trim().optional().default(''),
 });
 
 export const administrationBodySchema = z.object({
   status: z.enum(['ADMINISTERED', 'NOT_ADMINISTERED', 'REFUSED']),
-  administeredBy: z.string().trim().min(2, 'Informe o responsável.'),
+  administeredBy: z.string().trim().optional().default(''),
+  professionalId: z.string().trim().optional().default(''),
   notes: z.string().trim().optional().default(''),
+}).refine((data) => Boolean(data.professionalId || data.administeredBy.trim()), {
+  message: 'Selecione o profissional responsável.',
+  path: ['professionalId'],
 });

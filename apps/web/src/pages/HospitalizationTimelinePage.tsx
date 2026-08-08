@@ -23,13 +23,14 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link, useParams } from 'react-router-dom';
 import { Modal } from '../components/Modal';
 import { api } from '../services/api';
-import type { HospitalizationTimeline, TimelineEvent } from '../types';
+import type { HospitalizationTimeline, ProfessionalOption, TimelineEvent } from '../types';
 
 type ClinicalEventForm = {
   type: 'EVOLUTION' | 'VITALS' | 'OBSERVATION';
   title: string;
   description: string;
   responsible: string;
+  professionalId: string;
   eventAt: string;
   temperature: string;
   heartRate: string;
@@ -42,6 +43,7 @@ const emptyForm: ClinicalEventForm = {
   title: '',
   description: '',
   responsible: '',
+  professionalId: '',
   eventAt: '',
   temperature: '',
   heartRate: '',
@@ -99,14 +101,19 @@ export function HospitalizationTimelinePage() {
   const [search, setSearch] = useState('');
   const [type, setType] = useState('ALL');
   const [ascending, setAscending] = useState(false);
+  const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
     try {
       setLoading(true);
       setError('');
-      const response = await api.get(`/hospitalizations/${id}/timeline`);
-      setData(response.data);
+      const [timelineResponse, professionalsResponse] = await Promise.all([
+        api.get(`/hospitalizations/${id}/timeline`),
+        api.get<ProfessionalOption[]>('/professionals/options'),
+      ]);
+      setData(timelineResponse.data);
+      setProfessionals(Array.isArray(professionalsResponse.data) ? professionalsResponse.data : []);
     } catch {
       setError('Não foi possível carregar o prontuário.');
     } finally {
@@ -136,7 +143,7 @@ export function HospitalizationTimelinePage() {
   function openNew() {
     setEditing(null);
     setError('');
-    setForm({ ...emptyForm, eventAt: toLocalInput(new Date()) });
+    setForm({ ...emptyForm, professionalId: data?.hospitalization.professionalId ?? '', responsible: data?.hospitalization.veterinarian ?? '', eventAt: toLocalInput(new Date()) });
     setModal(true);
   }
 
@@ -148,6 +155,7 @@ export function HospitalizationTimelinePage() {
       title: event.title,
       description: event.description ?? '',
       responsible: event.responsible ?? '',
+      professionalId: event.professionalId ?? '',
       eventAt: toLocalInput(event.date),
       temperature: event.vitals?.temperature?.toString() ?? '',
       heartRate: event.vitals?.heartRate?.toString() ?? '',
@@ -168,6 +176,7 @@ export function HospitalizationTimelinePage() {
         title: form.title.trim(),
         description: form.description.trim(),
         responsible: form.responsible.trim() || null,
+        professionalId: form.professionalId || null,
         eventAt: new Date(form.eventAt).toISOString(),
         temperature: form.temperature === '' ? null : Number(form.temperature),
         heartRate: form.heartRate === '' ? null : Number(form.heartRate),
@@ -303,7 +312,7 @@ export function HospitalizationTimelinePage() {
             <div className="form-grid three-cols">
               <label>Tipo *<select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value as ClinicalEventForm['type'] })}><option value="EVOLUTION">Evolução</option><option value="VITALS">Sinais vitais</option><option value="OBSERVATION">Observação</option></select></label>
               <label>Data e hora *<input required type="datetime-local" value={form.eventAt} onChange={(event) => setForm({ ...form, eventAt: event.target.value })}/></label>
-              <label>Responsável<input value={form.responsible} onChange={(event) => setForm({ ...form, responsible: event.target.value })}/></label>
+              <label>Profissional responsável<select value={form.professionalId} onChange={(event) => { const professional = professionals.find((item) => item.id === event.target.value); setForm({ ...form, professionalId: event.target.value, responsible: professional?.name ?? '' }); }}><option value="">Não definido</option>{!form.professionalId && form.responsible && <option value="" disabled>{form.responsible} • registro antigo</option>}{professionals.map((professional) => <option key={professional.id} value={professional.id}>{professional.name}{professional.crmv ? ` • ${professional.crmv}` : ''}{professional.specialty ? ` • ${professional.specialty}` : ''}</option>)}</select></label>
               <label className="full">Título *<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })}/></label>
               <label className="full">Descrição clínica *<textarea required rows={5} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })}/></label>
               <div className="vitals-form full">

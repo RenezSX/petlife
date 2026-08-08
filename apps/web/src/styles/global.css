@@ -673,3 +673,24 @@ button:disabled{cursor:not-allowed;filter:saturate(.75)}
 
 @keyframes petlife-fade-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* Fase 7.8 — Agenda clínica */
+.agenda-date-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px;background:var(--surface, #fff);border:1px solid var(--border, #dbe6eb);border-radius:16px}
+.agenda-date-nav input,.agenda-date-nav select{min-height:42px}
+.agenda-date-nav select:last-child{min-width:230px}
+.agenda-clinic-panel{padding:0;overflow:hidden}
+.clinical-timeline{padding:8px 20px 22px}
+.clinical-time-row{display:grid;grid-template-columns:76px 1fr;gap:14px;position:relative;padding-top:14px}
+.clinical-time-row:before{content:"";position:absolute;left:37px;top:0;bottom:-14px;width:1px;background:var(--border,#dbe6eb)}
+.clinical-hour{position:relative;z-index:1;align-self:start;padding:7px 5px;border-radius:10px;background:var(--surface,#fff);font-weight:800;text-align:center;color:var(--text,#173746)}
+.clinical-events{display:grid;gap:10px}
+.clinical-event{display:flex;align-items:center;gap:13px;padding:14px;border:1px solid var(--border,#dbe6eb);border-left:4px solid #1688a8;border-radius:14px;background:var(--surface,#fff)}
+.clinical-event.event-medication{border-left-color:#8b5cf6}.clinical-event.event-discharge{border-left-color:#22a06b}.clinical-event.event-overdue{border-left-color:#e44d5e}
+.clinical-event-icon{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--surface-muted,#eef7fa)}
+.clinical-event-icon svg{width:19px}
+.clinical-event-main{min-width:0;flex:1}.clinical-event-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.clinical-event-title span,.clinical-event-title em{font-size:11px;padding:4px 7px;border-radius:999px;background:var(--surface-muted,#eef7fa);font-style:normal}.clinical-event-title em{background:#ffe5e8;color:#b42334}
+.clinical-event-main p{margin:5px 0;color:var(--muted,#66808d)}.clinical-event-main small{display:flex;align-items:center;gap:5px;color:var(--muted,#66808d)}
+.clinical-event-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:800px){.clinical-time-row{grid-template-columns:1fr}.clinical-time-row:before{display:none}.clinical-hour{text-align:left;width:max-content}.clinical-event{align-items:flex-start;flex-wrap:wrap}.clinical-event-actions{width:100%;justify-content:flex-start;padding-left:53px}.agenda-date-nav>*{flex:1 1 140px}.agenda-date-nav .icon-button{flex:0 0 auto}}
+@media print{.sidebar,.topbar,.app-footer,.agenda-date-nav,.page-heading button,.clinical-event-actions{display:none!important}.main-area,.content{margin:0!important;padding:0!important}.clinical-event{break-inside:avoid}}

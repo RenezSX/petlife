@@ -10,6 +10,7 @@ type TimelineEvent = {
   date: Date;
   status: string;
   responsible?: string | null;
+  professionalId?: string | null;
   editable?: boolean;
   vitals?: {
     temperature: number | null;
@@ -57,6 +58,7 @@ export async function getTimeline(id: string) {
       date: event.eventAt,
       status: 'RECORDED',
       responsible: event.responsible,
+      professionalId: event.professionalId,
       editable: true,
       vitals: {
         temperature: event.temperature,
@@ -117,6 +119,7 @@ export async function getTimeline(id: string) {
       reason: hospitalization.reason,
       diagnosis: hospitalization.diagnosis,
       veterinarian: hospitalization.veterinarian,
+      professionalId: hospitalization.professionalId,
       notes: hospitalization.notes,
       admittedAt: hospitalization.admittedAt,
       expectedDischargeAt: hospitalization.expectedDischargeAt,
@@ -134,9 +137,18 @@ export async function getTimeline(id: string) {
   };
 }
 
+async function resolveClinicalProfessional(data: ClinicalEventInput) {
+  if (!data.professionalId) return { professionalId: null, responsible: data.responsible || null };
+  const professional = await prisma.professional.findUnique({ where: { id: data.professionalId } });
+  if (!professional || !professional.active) throw new AppError(400, 'Selecione um profissional ativo.');
+  return { professionalId: professional.id, responsible: professional.name };
+}
+
 export async function createClinicalEvent(hospitalizationId: string, data: ClinicalEventInput) {
   const hospitalization = await prisma.hospitalization.findUnique({ where: { id: hospitalizationId } });
   if (!hospitalization) throw new AppError(404, 'Internação não encontrada.');
+
+  const professional = await resolveClinicalProfessional(data);
 
   return prisma.clinicalEvent.create({
     data: {
@@ -144,7 +156,8 @@ export async function createClinicalEvent(hospitalizationId: string, data: Clini
       type: data.type,
       title: data.title,
       description: data.description,
-      responsible: data.responsible || null,
+      responsible: professional.responsible,
+      professionalId: professional.professionalId,
       eventAt: data.eventAt,
       temperature: data.temperature ?? null,
       heartRate: data.heartRate ?? null,
@@ -158,13 +171,16 @@ export async function updateClinicalEvent(hospitalizationId: string, eventId: st
   const event = await prisma.clinicalEvent.findFirst({ where: { id: eventId, hospitalizationId } });
   if (!event) throw new AppError(404, 'Registro clínico não encontrado.');
 
+  const professional = await resolveClinicalProfessional(data);
+
   return prisma.clinicalEvent.update({
     where: { id: eventId },
     data: {
       type: data.type,
       title: data.title,
       description: data.description,
-      responsible: data.responsible || null,
+      responsible: professional.responsible,
+      professionalId: professional.professionalId,
       eventAt: data.eventAt,
       temperature: data.temperature ?? null,
       heartRate: data.heartRate ?? null,

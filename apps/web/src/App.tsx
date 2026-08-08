@@ -13,6 +13,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ClinicSettingsProvider } from './contexts/ClinicSettingsContext';
 import { AuditPage } from './pages/AuditPage';
 import { ProfessionalsPage } from './pages/ProfessionalsPage';
+import { AgendaPage } from './pages/AgendaPage';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/agenda" element={<AgendaPage />} />
           <Route path="/tutores" element={<TutorsPage />} />
           <Route path="/animais" element={<AnimalsPage />} />
 
