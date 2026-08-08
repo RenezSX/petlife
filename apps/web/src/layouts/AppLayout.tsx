@@ -4,6 +4,7 @@ import {
   BedDouble,
   ClipboardList,
   History,
+  FileText,
   LayoutDashboard,
   Menu,
   Moon,
@@ -37,6 +38,7 @@ export function AppLayout() {
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/agenda', label: 'Agenda clínica', icon: CalendarDays },
+    { to: '/documentos', label: 'Documentos', icon: FileText },
     { to: '/internacoes', label: 'Internações', icon: BedDouble },
     { to: '/leitos', label: 'Leitos', icon: BedDouble },
     { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
@@ -67,7 +69,7 @@ export function AppLayout() {
         <div className="clinic-card">
           <div className="clinic-card-icon"><Stethoscope size={20} /></div>
           <div><strong>{clinicName}</strong><span>{settings?.openingHours || 'Clínica Veterinária'}</span></div>
-          <small>Fase 7.8 • v2.8.0</small>
+          <small>Fase 7.9 • v2.9.0</small>
         </div>
       </aside>
 

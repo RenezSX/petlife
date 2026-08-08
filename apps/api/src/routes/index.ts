@@ -15,11 +15,14 @@ import * as backupController from '../controllers/backup.controller.js';
 import * as auditController from '../controllers/audit.controller.js';
 import * as professionalController from '../controllers/professional.controller.js';
 import * as agendaController from '../controllers/agenda.controller.js';
+import * as documentController from '../controllers/document.controller.js';
 
 export const routes = Router();
 
 routes.get('/dashboard/summary', dashboardController.summary);
 routes.get('/agenda', agendaController.list);
+routes.get('/documents/options', documentController.options);
+routes.get('/documents/hospitalizations/:id', documentController.get);
 routes.get('/search', searchController.search);
 routes.get('/reports', reportController.generate);
 routes.get('/notifications', notificationController.list);
