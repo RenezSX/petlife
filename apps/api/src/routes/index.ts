@@ -14,12 +14,37 @@ import * as settingsController from '../controllers/settings.controller.js';
 import * as backupController from '../controllers/backup.controller.js';
 import * as auditController from '../controllers/audit.controller.js';
 import * as professionalController from '../controllers/professional.controller.js';
+import * as attachmentController from '../controllers/attachment.controller.js';
 import * as agendaController from '../controllers/agenda.controller.js';
 import * as documentController from '../controllers/document.controller.js';
+import * as inventoryController from '../controllers/inventory.controller.js';
+import * as financeController from '../controllers/finance.controller.js';
+import * as preventiveController from '../controllers/preventive.controller.js';
 
 export const routes = Router();
 
 routes.get('/dashboard/summary', dashboardController.summary);
+routes.get('/finance/stats', financeController.stats);
+routes.get('/finance', financeController.list);
+routes.post('/finance', financeController.create);
+routes.put('/finance/:id', financeController.update);
+routes.delete('/finance/:id', financeController.remove);
+
+routes.get('/preventives/stats', preventiveController.stats);
+routes.get('/preventives', preventiveController.list);
+routes.post('/preventives', preventiveController.create);
+routes.put('/preventives/:id', preventiveController.update);
+routes.delete('/preventives/:id', preventiveController.remove);
+
+routes.get('/inventory/stats', inventoryController.stats);
+routes.get('/inventory/options', inventoryController.options);
+routes.get('/inventory', inventoryController.list);
+routes.post('/inventory', inventoryController.create);
+routes.put('/inventory/:id', inventoryController.update);
+routes.patch('/inventory/:id/deactivate', inventoryController.deactivate);
+routes.patch('/inventory/:id/reactivate', inventoryController.reactivate);
+routes.get('/inventory/:id/movements', inventoryController.movements);
+routes.post('/inventory/:id/movements', inventoryController.movement);
 routes.get('/agenda', agendaController.list);
 routes.get('/documents/options', documentController.options);
 routes.get('/documents/hospitalizations/:id', documentController.get);
@@ -54,9 +79,12 @@ routes.patch('/tutors/:id/deactivate', tutorController.deactivate);
 routes.patch('/tutors/:id/reactivate', tutorController.reactivate);
 
 routes.get('/animals', animalController.list);
+routes.get('/animals/identify/:code', animalController.identify);
 routes.post('/animals', animalController.create);
 routes.get('/animals/:id', animalController.get);
 routes.put('/animals/:id', animalController.update);
+routes.patch('/animals/:id/photo', animalController.updatePhoto);
+routes.delete('/animals/:id/photo', animalController.removePhoto);
 routes.patch('/animals/:id/deactivate', animalController.deactivate);
 routes.patch('/animals/:id/reactivate', animalController.reactivate);
 
@@ -94,3 +122,7 @@ routes.get('/hospitalizations/:id/timeline', timelineController.get);
 routes.post('/hospitalizations/:id/timeline/events', timelineController.createEvent);
 routes.put('/hospitalizations/:id/timeline/events/:eventId', timelineController.updateEvent);
 routes.delete('/hospitalizations/:id/timeline/events/:eventId', timelineController.removeEvent);
+
+routes.get('/hospitalizations/:id/attachments', attachmentController.list);
+routes.post('/hospitalizations/:id/attachments', attachmentController.create);
+routes.delete('/hospitalizations/:id/attachments/:attachmentId', attachmentController.remove);

@@ -2,9 +2,14 @@ node_modules/
 dist/
 .env
 .env.*
+!.env.example
+!apps/api/.env.example
 *.db
 *.db-journal
 coverage/
 *.log
 .vscode/
-.DS_Storegit add .
+.DS_Store
+*.tsbuildinfo
+apps/web/vite.config.js
+apps/web/vite.config.d.ts

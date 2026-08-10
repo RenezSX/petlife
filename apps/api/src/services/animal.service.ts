@@ -20,3 +20,29 @@ function dataFor(data:AnimalInput) { return {...data,breed:clean(data.breed),sex
 export async function createAnimal(data:AnimalInput) { const tutor=await prisma.tutor.findFirst({where:{id:data.tutorId,active:true}}); if(!tutor) throw new AppError(400,'Selecione um tutor ativo.'); try{return await prisma.animal.create({data:dataFor(data),include:{tutor:true}})}catch(error){if(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==='P2002')throw new AppError(409,'Este microchip já está cadastrado.');throw error;} }
 export async function updateAnimal(id:string,data:AnimalInput) { await getAnimal(id); const tutor=await prisma.tutor.findFirst({where:{id:data.tutorId,active:true}}); if(!tutor)throw new AppError(400,'Selecione um tutor ativo.'); try{return await prisma.animal.update({where:{id},data:dataFor(data),include:{tutor:true}})}catch(error){if(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==='P2002')throw new AppError(409,'Este microchip já está cadastrado.');throw error;} }
 export async function setAnimalActive(id:string,active:boolean) { await getAnimal(id); return prisma.animal.update({where:{id},data:{active}}); }
+
+export async function updateAnimalPhoto(id:string,dataUrl:string|null){ await getAnimal(id); return prisma.animal.update({where:{id},data:{photoUrl:dataUrl}}); }
+
+export async function identifyAnimal(code:string) {
+  const value = code.trim();
+  if (!value) throw new AppError(400,'Informe o microchip ou código do paciente.');
+
+  const animal = await prisma.animal.findFirst({
+    where:{ OR:[{ id:value },{ microchip:value }] },
+    include:{
+      tutor:true,
+      hospitalizations:{
+        where:{ dischargedAt:null },
+        include:{ bed:true },
+        orderBy:{ admittedAt:'desc' },
+        take:1,
+      },
+    },
+  });
+
+  if (!animal) throw new AppError(404,'Paciente não encontrado para este código.');
+  return {
+    animal,
+    activeHospitalization: animal.hospitalizations[0] ?? null,
+  };
+}

@@ -15,7 +15,7 @@ type NotificationLevel = 'danger' | 'warning' | 'info' | 'success';
 type NotificationItem = {
   id: string;
   level: NotificationLevel;
-  category: 'medication' | 'procedure' | 'hospitalization' | 'bed';
+  category: 'medication' | 'procedure' | 'hospitalization' | 'bed' | 'inventory';
   title: string;
   description: string;
   occurredAt: string;
@@ -39,8 +39,9 @@ export async function listNotifications() {
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
   const nextTwoHours = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const nextThirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  const [overdueDoses, upcomingDoses, overdueProcedures, criticalPatients, expectedDischarges, beds] =
+  const [overdueDoses, upcomingDoses, overdueProcedures, criticalPatients, expectedDischarges, beds, inventoryItems] =
     await Promise.all([
       prisma.medicationDose.findMany({
         where: { status: 'PENDING', scheduledAt: { lt: now } },
@@ -99,6 +100,10 @@ export async function listNotifications() {
             take: 1
           }
         }
+      }),
+      prisma.inventoryItem.findMany({
+        where: { active: true },
+        orderBy: { name: 'asc' }
       })
     ]);
 
@@ -149,6 +154,31 @@ export async function listNotifications() {
       href: `/internacoes/${hospitalization.id}`
     }))
   ];
+
+  for (const item of inventoryItems) {
+    if (item.currentQuantity <= item.minimumQuantity) {
+      notifications.push({
+        id: `inventory-low-${item.id}`,
+        level: item.currentQuantity <= 0 ? 'danger' : 'warning',
+        category: 'inventory',
+        title: `Estoque ${item.currentQuantity <= 0 ? 'esgotado' : 'baixo'}: ${item.name}`,
+        description: `${item.currentQuantity} ${item.unit} disponíveis • mínimo ${item.minimumQuantity} ${item.unit}`,
+        occurredAt: item.updatedAt.toISOString(),
+        href: '/estoque'
+      });
+    }
+    if (item.expiryDate && item.expiryDate <= nextThirtyDays) {
+      notifications.push({
+        id: `inventory-expiry-${item.id}`,
+        level: item.expiryDate < now ? 'danger' : 'warning',
+        category: 'inventory',
+        title: `${item.expiryDate < now ? 'Item vencido' : 'Validade próxima'}: ${item.name}`,
+        description: `Validade: ${item.expiryDate.toLocaleDateString('pt-BR')}${item.batch ? ` • lote ${item.batch}` : ''}`,
+        occurredAt: item.expiryDate.toISOString(),
+        href: '/estoque'
+      });
+    }
+  }
 
   const availableBeds = beds.filter((bed) => bed.hospitalizations.length === 0).length;
   if (availableBeds > 0) {

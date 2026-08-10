@@ -9,7 +9,11 @@ import {
   Menu,
   Moon,
   PawPrint,
+  QrCode,
   Pill,
+  PackageOpen,
+  WalletCards,
+  ShieldCheck,
   Settings,
   Stethoscope,
   Sun,
@@ -21,12 +25,14 @@ import { useState } from 'react';
 import { BrandLogo } from '../components/BrandLogo';
 import { GlobalSearch } from '../components/GlobalSearch';
 import { NotificationCenter } from '../components/NotificationCenter';
+import { PwaInstallButton } from '../components/PwaInstallButton';
+import { ConnectionStatus } from '../components/ConnectionStatus';
 import { useClinicSettings } from '../contexts/ClinicSettingsContext';
 
 export function AppLayout() {
   const [open, setOpen] = useState(false);
   const { settings, setTheme, resolvedTheme } = useClinicSettings();
-  const clinicName = settings?.name ?? 'PetLife São Caetano';
+  const clinicName = settings?.name ?? 'PetLife';
   const tagline = settings?.tagline ?? 'Cuidando com amor, tratando com excelência.';
   const darkMode = resolvedTheme === 'dark';
 
@@ -43,7 +49,11 @@ export function AppLayout() {
     { to: '/leitos', label: 'Leitos', icon: BedDouble },
     { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
     { to: '/medicacoes', label: 'Medicações', icon: Pill },
+    { to: '/estoque', label: 'Estoque', icon: PackageOpen },
+    { to: '/preventivos', label: 'Vacinas e preventivos', icon: ShieldCheck },
+    { to: '/financeiro', label: 'Financeiro', icon: WalletCards },
     { to: '/animais', label: 'Animais', icon: PawPrint },
+    { to: '/identificar', label: 'Identificação', icon: QrCode },
     { to: '/tutores', label: 'Tutores', icon: Users },
     { to: '/profissionais', label: 'Profissionais', icon: Stethoscope },
     { to: '/relatorios', label: 'Relatórios', icon: BarChart3 },
@@ -69,7 +79,7 @@ export function AppLayout() {
         <div className="clinic-card">
           <div className="clinic-card-icon"><Stethoscope size={20} /></div>
           <div><strong>{clinicName}</strong><span>{settings?.openingHours || 'Clínica Veterinária'}</span></div>
-          <small>Fase 7.9 • v2.9.0</small>
+          <small>Fase 8.10 • v3.10.0</small>
         </div>
       </aside>
 
@@ -78,6 +88,7 @@ export function AppLayout() {
           <button type="button" className="menu-button" onClick={() => setOpen((current) => !current)} aria-label="Abrir menu"><Menu /></button>
           <div className="topbar-title"><strong>{clinicName}</strong><span>Gestão veterinária</span></div>
           <GlobalSearch />
+          <PwaInstallButton />
           <button
             type="button"
             className="theme-toggle"
@@ -93,6 +104,7 @@ export function AppLayout() {
             <div><strong>{clinicName}</strong><span>Sistema interno</span></div>
           </div>
         </header>
+        <ConnectionStatus />
         <section className="content"><Outlet /></section>
         <footer className="app-footer">{clinicName} • {tagline}</footer>
       </main>

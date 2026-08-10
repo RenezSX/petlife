@@ -278,8 +278,33 @@ export async function getDashboardData() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
 
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const nextThirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const [financialRows, inventoryRows, preventiveRows] = await Promise.all([
+    prisma.financialEntry.findMany({ where: { occurredAt: { gte: monthStart, lt: monthEnd }, status: { not: 'CANCELED' } } }),
+    prisma.inventoryItem.findMany({ where: { active: true } }),
+    prisma.preventiveRecord.findMany({ where: { nextDueAt: { not: null } }, include: { animal: true } }),
+  ]);
+
+  const financialIncome = financialRows.filter((item) => item.type === 'INCOME' && item.status === 'PAID').reduce((sum, item) => sum + item.amount, 0);
+  const financialExpense = financialRows.filter((item) => item.type === 'EXPENSE' && item.status === 'PAID').reduce((sum, item) => sum + item.amount, 0);
+  const inventoryLow = inventoryRows.filter((item) => item.currentQuantity <= item.minimumQuantity).length;
+  const inventoryExpired = inventoryRows.filter((item) => item.expiryDate && item.expiryDate < now).length;
+  const preventiveOverdue = preventiveRows.filter((item) => item.nextDueAt! < now).length;
+  const preventiveDueSoon = preventiveRows.filter((item) => item.nextDueAt! >= now && item.nextDueAt! <= nextThirtyDays).length;
+
+  if (inventoryLow > 0) alerts.push({ id: 'inventory-low-final', level: 'warning', title: `${inventoryLow} item(ns) com estoque baixo`, description: 'Revise a farmácia e os insumos da clínica.', href: '/estoque' });
+  if (preventiveOverdue > 0) alerts.push({ id: 'preventive-overdue', level: 'warning', title: `${preventiveOverdue} preventivo(s) atrasado(s)`, description: 'Existem vacinas ou preventivos com próxima dose vencida.', href: '/preventivos' });
+
   return {
     generatedAt: now.toISOString(),
+    executive: {
+      finance: { income: financialIncome, expense: financialExpense, balance: financialIncome - financialExpense },
+      inventory: { low: inventoryLow, expired: inventoryExpired },
+      preventives: { overdue: preventiveOverdue, dueSoon: preventiveDueSoon }
+    },
     refreshIntervalSeconds: 30,
     metrics: {
       hospitalized: activeHospitalizations,

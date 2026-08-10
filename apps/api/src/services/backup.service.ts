@@ -1,7 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { AppError } from '../utils/app-error.js';
 
-const BACKUP_VERSION = '2.7.0';
+const BACKUP_VERSION = '3.9.0';
 const BACKUP_SCHEMA_VERSION = 1;
 
 const dateFields: Record<string, string[]> = {
@@ -27,8 +27,13 @@ type BackupData = {
   medicationPrescriptions: Record<string, unknown>[];
   medicationDoses: Record<string, unknown>[];
   clinicalEvents: Record<string, unknown>[];
+  clinicalAttachments?: Record<string, unknown>[];
   clinicSettings: Record<string, unknown>[];
   professionals?: Record<string, unknown>[];
+  financialEntries?: Record<string, unknown>[];
+  preventiveRecords?: Record<string, unknown>[];
+  inventoryItems?: Record<string, unknown>[];
+  inventoryMovements?: Record<string, unknown>[];
 };
 
 type BackupPayload = {
@@ -92,7 +97,7 @@ function restoreDates(collection: keyof BackupData, rows: Record<string, unknown
 }
 
 export async function createBackup() {
-  const [users, tutors, animals, beds, hospitalizations, procedures, medicationPrescriptions, medicationDoses, clinicalEvents, clinicSettings, professionals] = await Promise.all([
+  const [users, tutors, animals, beds, hospitalizations, procedures, medicationPrescriptions, medicationDoses, clinicalEvents, clinicalAttachments, clinicSettings, professionals, inventoryItems, inventoryMovements, financialEntries, preventiveRecords] = await Promise.all([
     prisma.user.findMany(),
     prisma.tutor.findMany(),
     prisma.animal.findMany(),
@@ -102,8 +107,13 @@ export async function createBackup() {
     prisma.medicationPrescription.findMany(),
     prisma.medicationDose.findMany(),
     prisma.clinicalEvent.findMany(),
+    prisma.clinicalAttachment.findMany(),
     prisma.clinicSettings.findMany(),
     prisma.professional.findMany(),
+    prisma.inventoryItem.findMany(),
+    prisma.inventoryMovement.findMany(),
+    prisma.financialEntry.findMany(),
+    prisma.preventiveRecord.findMany(),
   ]);
 
   const data = {
@@ -116,8 +126,13 @@ export async function createBackup() {
     medicationPrescriptions,
     medicationDoses,
     clinicalEvents,
+    clinicalAttachments,
     clinicSettings,
     professionals,
+    inventoryItems,
+    inventoryMovements,
+    financialEntries,
+    preventiveRecords,
   };
   const counts = Object.fromEntries(Object.entries(data).map(([key, rows]) => [key, rows.length]));
   const createdAt = new Date();
@@ -164,10 +179,43 @@ export async function restoreBackup(input: unknown, originalFileName?: string) {
   const prescriptions = restoreDates('medicationPrescriptions', payload.data.medicationPrescriptions);
   const doses = restoreDates('medicationDoses', payload.data.medicationDoses);
   const clinicalEvents = restoreDates('clinicalEvents', payload.data.clinicalEvents);
+  const clinicalAttachments = (payload.data.clinicalAttachments ?? []).map((row) => ({ ...row, createdAt: row.createdAt ? new Date(String(row.createdAt)) : undefined }));
   const clinicSettings = restoreDates('clinicSettings', payload.data.clinicSettings);
   const professionals = (payload.data.professionals ?? []).map((row) => ({ ...row, createdAt: row.createdAt ? new Date(String(row.createdAt)) : undefined, updatedAt: row.updatedAt ? new Date(String(row.updatedAt)) : undefined }));
+  const inventoryItems = (payload.data.inventoryItems ?? []).map((row) => ({
+    ...row,
+    expiryDate: row.expiryDate ? new Date(String(row.expiryDate)) : null,
+    createdAt: row.createdAt ? new Date(String(row.createdAt)) : undefined,
+    updatedAt: row.updatedAt ? new Date(String(row.updatedAt)) : undefined,
+  }));
+  const inventoryMovements = (payload.data.inventoryMovements ?? []).map((row) => ({
+    ...row,
+    createdAt: row.createdAt ? new Date(String(row.createdAt)) : undefined,
+  }));
+  const financialEntries = (payload.data.financialEntries ?? []).map((row) => ({
+    ...row,
+    occurredAt: row.occurredAt ? new Date(String(row.occurredAt)) : new Date(),
+    dueAt: row.dueAt ? new Date(String(row.dueAt)) : null,
+    paidAt: row.paidAt ? new Date(String(row.paidAt)) : null,
+    createdAt: row.createdAt ? new Date(String(row.createdAt)) : undefined,
+    updatedAt: row.updatedAt ? new Date(String(row.updatedAt)) : undefined,
+  }));
+  const preventiveRecords = (payload.data.preventiveRecords ?? []).map((row) => ({
+    ...row,
+    appliedAt: row.appliedAt ? new Date(String(row.appliedAt)) : new Date(),
+    nextDueAt: row.nextDueAt ? new Date(String(row.nextDueAt)) : null,
+    createdAt: row.createdAt ? new Date(String(row.createdAt)) : undefined,
+    updatedAt: row.updatedAt ? new Date(String(row.updatedAt)) : undefined,
+  }));
+
+
 
   await prisma.$transaction(async (tx: typeof prisma) => {
+    await tx.financialEntry.deleteMany();
+    await tx.preventiveRecord.deleteMany();
+    await tx.inventoryMovement.deleteMany();
+    await tx.inventoryItem.deleteMany();
+    await tx.clinicalAttachment.deleteMany();
     await tx.clinicalEvent.deleteMany();
     await tx.medicationDose.deleteMany();
     await tx.medicationPrescription.deleteMany();
@@ -190,6 +238,11 @@ export async function restoreBackup(input: unknown, originalFileName?: string) {
     if (prescriptions.length) await tx.medicationPrescription.createMany({ data: prescriptions as any });
     if (doses.length) await tx.medicationDose.createMany({ data: doses as any });
     if (clinicalEvents.length) await tx.clinicalEvent.createMany({ data: clinicalEvents as any });
+    if (clinicalAttachments.length) await tx.clinicalAttachment.createMany({ data: clinicalAttachments as any });
+    if (inventoryItems.length) await tx.inventoryItem.createMany({ data: inventoryItems as any });
+    if (inventoryMovements.length) await tx.inventoryMovement.createMany({ data: inventoryMovements as any });
+    if (financialEntries.length) await tx.financialEntry.createMany({ data: financialEntries as any });
+    if (preventiveRecords.length) await tx.preventiveRecord.createMany({ data: preventiveRecords as any });
     if (clinicSettings.length) await tx.clinicSettings.createMany({ data: clinicSettings as any });
   });
 

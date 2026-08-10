@@ -10,6 +10,9 @@ import {
   CheckCircle2,
   Clock3,
   HeartPulse,
+  PackageOpen,
+  ShieldCheck,
+  WalletCards,
   Pill,
   RefreshCw,
   Stethoscope,
@@ -154,6 +157,12 @@ export function DashboardPage() {
       </div>
 
       {error && <div className="form-error dashboard-inline-error">{error}</div>}
+
+      <div className="executive-grid">
+        <Link to="/financeiro" className="executive-card"><WalletCards/><div><span>Saldo do mês</span><strong>{data.executive.finance.balance.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong><small>Entradas {data.executive.finance.income.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} • Saídas {data.executive.finance.expense.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</small></div></Link>
+        <Link to="/estoque" className="executive-card"><PackageOpen/><div><span>Estoque em atenção</span><strong>{data.executive.inventory.low}</strong><small>{data.executive.inventory.expired} item(ns) vencido(s)</small></div></Link>
+        <Link to="/preventivos" className="executive-card"><ShieldCheck/><div><span>Preventivos</span><strong>{data.executive.preventives.overdue} atrasado(s)</strong><small>{data.executive.preventives.dueSoon} próximo(s) nos próximos 30 dias</small></div></Link>
+      </div>
 
       <div className="metrics-grid metrics-grid-v5">
         {cards.map(({ label, value, detail, icon: Icon, tone, href }) => (

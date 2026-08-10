@@ -17,7 +17,10 @@ export const animalBodySchema = z.object({
   previousDiseases: optionalText,
   continuousMedications: optionalText,
   notes: optionalText,
-  photoUrl: z.string().url('Informe uma URL válida.').optional().or(z.literal('')),
+  photoUrl: z.string().max(5_000_000).refine(
+    (value) => !value || /^data:image\/(png|jpeg|jpg|webp);base64,/i.test(value) || /^https?:\/\//i.test(value),
+    'Informe uma URL válida ou selecione uma imagem.',
+  ).optional().or(z.literal('')),
   tutorId: z.string().min(1, 'Selecione o tutor.'),
 });
 

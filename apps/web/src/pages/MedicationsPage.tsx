@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Clock3,
   PauseCircle,
+  PackageOpen,
   Pill,
   Plus,
   Syringe,
@@ -39,6 +40,17 @@ type HospitalizationOption = {
   } | null;
 };
 
+type InventoryOption = {
+  id: string;
+  name: string;
+  unit: string;
+  currentQuantity: number;
+  minimumQuantity: number;
+  category: string;
+  batch?: string | null;
+  expiryDate?: string | null;
+};
+
 type PrescriptionForm = {
   hospitalizationId: string;
   medication: string;
@@ -49,6 +61,8 @@ type PrescriptionForm = {
   startAt: string;
   endAt: string;
   professionalId: string;
+  inventoryItemId: string;
+  inventoryQuantity: number;
   notes: string;
 };
 
@@ -69,6 +83,8 @@ const emptyForm: PrescriptionForm = {
   startAt: '',
   endAt: '',
   professionalId: '',
+  inventoryItemId: '',
+  inventoryQuantity: 1,
   notes: '',
 };
 
@@ -159,6 +175,8 @@ export function MedicationsPage() {
 
   const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
 
+  const [inventoryOptions, setInventoryOptions] = useState<InventoryOption[]>([]);
+
   const [tab, setTab] = useState<
     'agenda' | 'prescricoes'
   >('agenda');
@@ -193,6 +211,7 @@ export function MedicationsPage() {
         statsResponse,
         optionsResponse,
         professionalsResponse,
+        inventoryResponse,
       ] = await Promise.all([
         api.get('/medications/prescriptions'),
         api.get('/medications/doses', {
@@ -206,6 +225,7 @@ export function MedicationsPage() {
           },
         }),
         api.get('/professionals/options'),
+        api.get('/inventory/options'),
       ]);
 
       setPrescriptions(
@@ -233,6 +253,12 @@ export function MedicationsPage() {
           professionalsResponse.data,
         ),
       );
+
+      setInventoryOptions(
+        normalizeArray<InventoryOption>(
+          inventoryResponse.data,
+        ),
+      );
     } catch (loadError) {
       console.error(
         'Erro ao carregar medicações:',
@@ -243,6 +269,7 @@ export function MedicationsPage() {
       setDoses([]);
       setOptions([]);
       setProfessionals([]);
+      setInventoryOptions([]);
 
       setError(
         'Não foi possível carregar as medicações.',
@@ -328,6 +355,8 @@ export function MedicationsPage() {
           ? new Date(form.endAt).toISOString()
           : null,
         professionalId: form.professionalId || '',
+        inventoryItemId: form.inventoryItemId || '',
+        inventoryQuantity: form.inventoryItemId ? Number(form.inventoryQuantity) : undefined,
         notes: form.notes.trim() || null,
       });
 
@@ -600,6 +629,13 @@ export function MedicationsPage() {
                             }`
                           : 'Sem leito'}
                       </small>
+
+                      {dose.inventoryItem && dose.inventoryQuantity ? (
+                        <small className="dose-stock-info">
+                          <PackageOpen size={13}/>
+                          Baixa: {dose.inventoryQuantity} {dose.inventoryItem.unit} • saldo {dose.inventoryItem.currentQuantity} {dose.inventoryItem.unit}
+                        </small>
+                      ) : null}
                     </div>
 
                     <span
@@ -696,6 +732,19 @@ export function MedicationsPage() {
                 <div className="agenda-meta">
                   Profissional responsável: <strong>{prescription.responsible || 'Não definido'}</strong>
                 </div>
+
+                {prescription.inventoryItem && prescription.inventoryQuantity ? (
+                  <div className="medication-stock-link">
+                    <PackageOpen size={16}/>
+                    <span>Baixa automática: <strong>{prescription.inventoryQuantity} {prescription.inventoryItem.unit}</strong> de {prescription.inventoryItem.name} por dose</span>
+                    <small>Saldo atual: {prescription.inventoryItem.currentQuantity} {prescription.inventoryItem.unit}</small>
+                  </div>
+                ) : (
+                  <div className="medication-stock-link no-stock">
+                    <PackageOpen size={16}/>
+                    <span>Sem vínculo com o estoque</span>
+                  </div>
+                )}
 
                 <dl>
                   <div>
@@ -969,6 +1018,52 @@ export function MedicationsPage() {
               </label>
 
               <label className="full">
+                Item do estoque para baixa automática
+
+                <select
+                  value={form.inventoryItemId}
+                  onChange={(event) => {
+                    const item = inventoryOptions.find((option) => option.id === event.target.value);
+                    setForm((current) => ({
+                      ...current,
+                      inventoryItemId: event.target.value,
+                      medication: item && !current.medication ? item.name : current.medication,
+                    }));
+                  }}
+                >
+                  <option value="">Não vincular ao estoque</option>
+                  {inventoryOptions.map((item) => (
+                    <option key={item.id} value={item.id} disabled={item.currentQuantity <= 0}>
+                      {item.name} • {item.currentQuantity} {item.unit} disponíveis{item.batch ? ` • lote ${item.batch}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {form.inventoryItemId && (
+                <label>
+                  Consumo por dose *
+
+                  <input
+                    required
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={form.inventoryQuantity}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        inventoryQuantity: Number(event.target.value),
+                      }))
+                    }
+                  />
+                  <small className="field-hint">
+                    Quantidade retirada do estoque quando a dose for administrada.
+                  </small>
+                </label>
+              )}
+
+              <label className="full">
                 Observações
 
                 <textarea
@@ -1117,6 +1212,17 @@ export function MedicationsPage() {
                 />
               </label>
             </div>
+
+            {doseModal.inventoryItem && doseModal.inventoryQuantity && administration.status === 'ADMINISTERED' && (
+              <div className={`stock-dose-preview ${doseModal.inventoryItem.currentQuantity < doseModal.inventoryQuantity ? 'insufficient' : ''}`}>
+                <PackageOpen/>
+                <div>
+                  <strong>Baixa automática no estoque</strong>
+                  <span>{doseModal.inventoryQuantity} {doseModal.inventoryItem.unit} de {doseModal.inventoryItem.name}</span>
+                  <small>Saldo após administração: {(doseModal.inventoryItem.currentQuantity - doseModal.inventoryQuantity).toFixed(2)} {doseModal.inventoryItem.unit}</small>
+                </div>
+              </div>
+            )}
 
             {professionals.length === 0 && (
               <div className="form-error">

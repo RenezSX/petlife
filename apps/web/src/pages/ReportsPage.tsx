@@ -1,16 +1,23 @@
 import {
+  Activity,
   BarChart3,
   BedDouble,
+  Boxes,
   CalendarDays,
   Download,
   FileDown,
   FileSpreadsheet,
+  Files,
+  PackageOpen,
   PawPrint,
   Pill,
   Printer,
   RefreshCw,
+  ShieldCheck,
   Stethoscope,
+  Syringe,
   Users,
+  WalletCards,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
@@ -18,17 +25,25 @@ import type { ReportData, ReportType } from '../types';
 import { useClinicSettings } from '../contexts/ClinicSettingsContext';
 
 const reportOptions: Array<{ value: ReportType; label: string; description: string; icon: typeof BarChart3; dated: boolean }> = [
-  { value: 'hospitalizations', label: 'Internações', description: 'Entradas, altas, prioridade, setor e responsável.', icon: Stethoscope, dated: true },
-  { value: 'procedures', label: 'Procedimentos', description: 'Agenda, responsáveis e situação das tarefas clínicas.', icon: CalendarDays, dated: true },
-  { value: 'medications', label: 'Medicações', description: 'Doses programadas, registradas e pendências.', icon: Pill, dated: true },
-  { value: 'animals', label: 'Animais', description: 'Cadastro de pacientes, tutor e situação atual.', icon: PawPrint, dated: false },
-  { value: 'tutors', label: 'Tutores', description: 'Contatos, endereço e quantidade de animais.', icon: Users, dated: false },
-  { value: 'beds', label: 'Leitos', description: 'Disponibilidade, ocupação e pacientes por setor.', icon: BedDouble, dated: false },
+  { value: 'hospitalizations', label: 'Internações', description: 'Dados completos de entrada, alta, diagnóstico, leito e responsável.', icon: Stethoscope, dated: true },
+  { value: 'procedures', label: 'Procedimentos', description: 'Agenda, descrição, status, responsáveis e conclusão.', icon: CalendarDays, dated: true },
+  { value: 'medications', label: 'Administração de medicações', description: 'Doses, horários, responsável, justificativas e consumo do estoque.', icon: Syringe, dated: true },
+  { value: 'prescriptions', label: 'Prescrições', description: 'Tratamentos prescritos, frequência, doses geradas e vínculo com estoque.', icon: Pill, dated: true },
+  { value: 'animals', label: 'Animais', description: 'Cadastro clínico, tutor, microchip, alergias e preventivos.', icon: PawPrint, dated: false },
+  { value: 'tutors', label: 'Tutores', description: 'Contatos, endereço, observações e pacientes vinculados.', icon: Users, dated: false },
+  { value: 'beds', label: 'Leitos', description: 'Setores, disponibilidade, ocupação e paciente atual.', icon: BedDouble, dated: false },
+  { value: 'professionals', label: 'Profissionais', description: 'Equipe, função, CRMV, especialidade e contato.', icon: Users, dated: false },
+  { value: 'inventory', label: 'Estoque', description: 'Saldo, mínimo, validade, lote, fornecedor e localização.', icon: Boxes, dated: false },
+  { value: 'inventoryMovements', label: 'Movimentações de estoque', description: 'Entradas, saídas, ajustes, saldos e responsáveis.', icon: PackageOpen, dated: true },
+  { value: 'finance', label: 'Financeiro', description: 'Receitas, despesas, pagamentos, pendências e saldo.', icon: WalletCards, dated: true },
+  { value: 'preventives', label: 'Vacinas e preventivos', description: 'Vacinas, vermífugos, antiparasitários e próximas doses.', icon: ShieldCheck, dated: true },
+  { value: 'clinicalEvents', label: 'Prontuário clínico', description: 'Evoluções, sinais vitais, observações e responsáveis.', icon: Activity, dated: true },
+  { value: 'attachments', label: 'Anexos clínicos', description: 'Exames, imagens, laudos, receitas e documentos anexados.', icon: Files, dated: true },
 ];
 
 const statusOptions: Record<ReportType, Array<{ value: string; label: string }>> = {
   hospitalizations: [
-    { value: 'all', label: 'Todos' }, { value: 'active', label: 'Ativas' }, { value: 'discharged', label: 'Com alta' },
+    { value: 'all', label: 'Todas' }, { value: 'active', label: 'Ativas' }, { value: 'discharged', label: 'Com alta' },
     { value: 'HOSPITALIZED', label: 'Internadas' }, { value: 'OBSERVATION', label: 'Observação' }, { value: 'CRITICAL', label: 'Críticas' },
   ],
   procedures: [
@@ -36,12 +51,39 @@ const statusOptions: Record<ReportType, Array<{ value: string; label: string }>>
     { value: 'COMPLETED', label: 'Concluídos' }, { value: 'CANCELED', label: 'Cancelados' },
   ],
   medications: [
-    { value: 'all', label: 'Todos' }, { value: 'PENDING', label: 'Pendentes' }, { value: 'ADMINISTERED', label: 'Administradas' },
+    { value: 'all', label: 'Todas' }, { value: 'PENDING', label: 'Pendentes' }, { value: 'ADMINISTERED', label: 'Administradas' },
     { value: 'NOT_ADMINISTERED', label: 'Não administradas' }, { value: 'REFUSED', label: 'Recusadas' },
+  ],
+  prescriptions: [
+    { value: 'all', label: 'Todas' }, { value: 'active', label: 'Ativas' }, { value: 'inactive', label: 'Suspensas' },
   ],
   animals: [{ value: 'all', label: 'Todos' }, { value: 'active', label: 'Ativos' }, { value: 'inactive', label: 'Inativos' }],
   tutors: [{ value: 'all', label: 'Todos' }, { value: 'active', label: 'Ativos' }, { value: 'inactive', label: 'Inativos' }],
   beds: [{ value: 'all', label: 'Todos' }, { value: 'active', label: 'Ativos' }, { value: 'inactive', label: 'Inativos' }],
+  professionals: [{ value: 'all', label: 'Todos' }, { value: 'active', label: 'Ativos' }, { value: 'inactive', label: 'Inativos' }],
+  inventory: [
+    { value: 'all', label: 'Todos' }, { value: 'active', label: 'Ativos' }, { value: 'inactive', label: 'Inativos' },
+    { value: 'low', label: 'Estoque baixo' }, { value: 'zero', label: 'Sem estoque' }, { value: 'expiring', label: 'Vencimento próximo' },
+    { value: 'expired', label: 'Vencidos' },
+  ],
+  inventoryMovements: [
+    { value: 'all', label: 'Todas' }, { value: 'IN', label: 'Entradas' }, { value: 'OUT', label: 'Saídas' }, { value: 'ADJUSTMENT', label: 'Ajustes' },
+  ],
+  finance: [
+    { value: 'all', label: 'Todos' }, { value: 'income', label: 'Receitas' }, { value: 'expense', label: 'Despesas' },
+    { value: 'PAID', label: 'Pagos' }, { value: 'PENDING', label: 'Pendentes' }, { value: 'CANCELED', label: 'Cancelados' },
+  ],
+  preventives: [
+    { value: 'all', label: 'Todos' }, { value: 'VACCINE', label: 'Vacinas' }, { value: 'DEWORMING', label: 'Vermífugos' },
+    { value: 'ANTIPARASITIC', label: 'Antiparasitários' }, { value: 'overdue', label: 'Atrasados' }, { value: 'dueSoon', label: 'Próximos 30 dias' },
+  ],
+  clinicalEvents: [
+    { value: 'all', label: 'Todos' }, { value: 'EVOLUTION', label: 'Evoluções' }, { value: 'VITALS', label: 'Sinais vitais' }, { value: 'OBSERVATION', label: 'Observações' },
+  ],
+  attachments: [
+    { value: 'all', label: 'Todos' }, { value: 'EXAM', label: 'Exames' }, { value: 'IMAGE', label: 'Imagens' },
+    { value: 'REPORT', label: 'Laudos' }, { value: 'PRESCRIPTION', label: 'Receitas' }, { value: 'OTHER', label: 'Outros' },
+  ],
 };
 
 function fileName(type: ReportType, extension: string) {
@@ -82,16 +124,17 @@ function exportCsv(report: ReportData) {
 
 function tableHtml(report: ReportData, clinic: { name: string; tagline: string; openingHours?: string | null; logoDataUrl?: string | null }, printable = false) {
   const summary = Object.entries(report.summary)
-    .map(([key, value]) => `<div><span>${htmlEscape(key)}</span><strong>${htmlEscape(value)}</strong></div>`)
+    .map(([key, value]) => `<div><span>${htmlEscape(summaryLabel(key))}</span><strong>${htmlEscape(value)}</strong></div>`)
     .join('');
   const headings = report.columns.map((column) => `<th>${htmlEscape(column.label)}</th>`).join('');
   const rows = report.rows.map((row) => `<tr>${report.columns.map((column) => `<td>${htmlEscape(row[column.key])}</td>`).join('')}</tr>`).join('');
+  const dense = report.columns.length > 11;
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${htmlEscape(clinic.name)} - ${htmlEscape(report.title)}</title><style>
-    *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#17323c;margin:${printable ? '22px' : '0'};font-size:12px}
+    *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#17323c;margin:${printable ? '22px' : '0'};font-size:${dense ? '9px' : '12px'}}
     header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #087f91;padding-bottom:13px;margin-bottom:18px}
     h1{margin:0;color:#087f91;font-size:24px}.brand{font-weight:800;color:#ed751b}.muted{color:#71838a;font-size:11px}
     .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:17px}.summary div{border:1px solid #dfeaec;border-radius:8px;padding:8px 11px;min-width:100px}.summary span{display:block;color:#71838a;font-size:9px;text-transform:uppercase}.summary strong{font-size:16px;color:#17323c}
-    table{width:100%;border-collapse:collapse}th{background:#087f91;color:white;text-align:left;padding:8px;font-size:10px}td{border-bottom:1px solid #e3ecef;padding:7px;vertical-align:top}tr:nth-child(even) td{background:#f7fafb}
+    table{width:100%;border-collapse:collapse}th{background:#087f91;color:white;text-align:left;padding:${dense ? '5px' : '8px'};font-size:${dense ? '8px' : '10px'}}td{border-bottom:1px solid #e3ecef;padding:${dense ? '5px' : '7px'};vertical-align:top;word-break:break-word}tr:nth-child(even) td{background:#f7fafb}
     footer{margin-top:18px;color:#7b8e95;font-size:9px;text-align:center}@media print{body{margin:0}@page{size:landscape;margin:12mm}}
   </style></head><body><header><div><div class="brand">${clinic.logoDataUrl ? `<img src="${htmlEscape(clinic.logoDataUrl)}" alt="Logo" style="max-height:42px;max-width:180px;object-fit:contain"/>` : htmlEscape(clinic.name.toUpperCase())}</div><h1>${htmlEscape(report.title)}</h1><div class="muted">Relatório gerado em ${new Date(report.generatedAt).toLocaleString('pt-BR')}</div></div><div class="muted">${htmlEscape(clinic.openingHours || "Clínica Veterinária")}</div></header><section class="summary">${summary}</section><table><thead><tr>${headings}</tr></thead><tbody>${rows || `<tr><td colspan="${report.columns.length}">Nenhum registro encontrado.</td></tr>`}</tbody></table><footer>${htmlEscape(clinic.name)} • ${htmlEscape(clinic.tagline)}</footer></body></html>`;
 }
@@ -112,16 +155,50 @@ function printPdf(report: ReportData, clinic: { name: string; tagline: string; o
 
 function summaryLabel(key: string) {
   const labels: Record<string, string> = {
-    total: 'Total', active: 'Ativos', critical: 'Críticos', discharged: 'Altas', pending: 'Pendentes',
-    completed: 'Concluídos', canceled: 'Cancelados', administered: 'Administradas', notAdministered: 'Não administradas',
-    hospitalized: 'Internados', animals: 'Animais', available: 'Disponíveis', occupied: 'Ocupados',
+    total: 'Total',
+    active: 'Ativos',
+    inactive: 'Inativos',
+    critical: 'Críticos',
+    discharged: 'Altas',
+    pending: 'Pendentes',
+    completed: 'Concluídos',
+    canceled: 'Cancelados',
+    administered: 'Administradas',
+    notAdministered: 'Não administradas',
+    hospitalized: 'Internados',
+    animals: 'Animais',
+    available: 'Disponíveis',
+    occupied: 'Ocupados',
+    low: 'Estoque baixo',
+    zero: 'Sem estoque',
+    expired: 'Vencidos',
+    expiring: 'Vencimento próximo',
+    entries: 'Entradas',
+    exits: 'Saídas',
+    adjustments: 'Ajustes',
+    income: 'Receitas',
+    expense: 'Despesas',
+    balance: 'Saldo',
+    pendingAmount: 'Valor pendente',
+    vaccines: 'Vacinas',
+    deworming: 'Vermífugos',
+    antiparasitic: 'Antiparasitários',
+    overdue: 'Atrasados',
+    dueSoon: 'Próximos',
+    evolutions: 'Evoluções',
+    vitals: 'Sinais vitais',
+    observations: 'Observações',
+    exams: 'Exames',
+    images: 'Imagens',
+    reports: 'Laudos',
+    prescriptions: 'Receitas / prescrições',
   };
   return labels[key] ?? key;
 }
 
 export function ReportsPage() {
   const { settings } = useClinicSettings();
-  const clinic = { name: settings?.name ?? 'PetLife São Caetano', tagline: settings?.tagline ?? 'Cuidando com amor, tratando com excelência.', openingHours: settings?.openingHours, logoDataUrl: settings?.logoDataUrl };
+  const clinic = { name: settings?.name ?? 'PetLife', tagline: settings?.tagline ?? 'Cuidando com amor, tratando com excelência.', openingHours: settings?.openingHours, logoDataUrl: settings?.logoDataUrl };
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = `${today.slice(0, 8)}01`;
   const [type, setType] = useState<ReportType>('hospitalizations');

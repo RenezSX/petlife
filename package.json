@@ -1,7 +1,7 @@
 {
   "name": "petlife-internacao",
   "private": true,
-  "version": "1.0.0",
+  "version": "3.10.0",
   "workspaces": [
     "apps/*"
   ],

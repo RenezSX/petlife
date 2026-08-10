@@ -8,13 +8,16 @@ import {
   ClipboardList,
   Clock3,
   Edit3,
+  Download,
   FileText,
   HeartPulse,
   LogIn,
   LogOut,
+  Paperclip,
   Pill,
   Plus,
   Printer,
+  Upload,
   Search,
   Stethoscope,
   Trash2,
@@ -23,7 +26,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link, useParams } from 'react-router-dom';
 import { Modal } from '../components/Modal';
 import { api } from '../services/api';
-import type { HospitalizationTimeline, ProfessionalOption, TimelineEvent } from '../types';
+import type { ClinicalAttachment, HospitalizationTimeline, ProfessionalOption, TimelineEvent } from '../types';
 
 type ClinicalEventForm = {
   type: 'EVOLUTION' | 'VITALS' | 'OBSERVATION';
@@ -82,6 +85,21 @@ function message(error: unknown) {
     ?? 'Não foi possível concluir a operação.';
 }
 
+function attachmentFileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('Falha ao ler o arquivo.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function formatBytes(bytes:number){
+  if(bytes<1024)return `${bytes} B`;
+  if(bytes<1024*1024)return `${(bytes/1024).toFixed(1)} KB`;
+  return `${(bytes/1024/1024).toFixed(1)} MB`;
+}
+
 function formatStay(hours: number) {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
@@ -102,18 +120,27 @@ export function HospitalizationTimelinePage() {
   const [type, setType] = useState('ALL');
   const [ascending, setAscending] = useState(false);
   const [professionals, setProfessionals] = useState<ProfessionalOption[]>([]);
+  const [attachments, setAttachments] = useState<ClinicalAttachment[]>([]);
+  const [attachmentModal, setAttachmentModal] = useState(false);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentDescription, setAttachmentDescription] = useState('');
+  const [attachmentCategory, setAttachmentCategory] = useState('EXAM');
+  const [attachmentProfessionalId, setAttachmentProfessionalId] = useState('');
+
 
   const load = useCallback(async () => {
     if (!id) return;
     try {
       setLoading(true);
       setError('');
-      const [timelineResponse, professionalsResponse] = await Promise.all([
+      const [timelineResponse, professionalsResponse, attachmentsResponse] = await Promise.all([
         api.get(`/hospitalizations/${id}/timeline`),
         api.get<ProfessionalOption[]>('/professionals/options'),
+        api.get<ClinicalAttachment[]>(`/hospitalizations/${id}/attachments`),
       ]);
       setData(timelineResponse.data);
       setProfessionals(Array.isArray(professionalsResponse.data) ? professionalsResponse.data : []);
+      setAttachments(Array.isArray(attachmentsResponse.data) ? attachmentsResponse.data : []);
     } catch {
       setError('Não foi possível carregar o prontuário.');
     } finally {
@@ -208,6 +235,58 @@ export function HospitalizationTimelinePage() {
     }
   }
 
+  async function submitAttachment(event: FormEvent) {
+    event.preventDefault();
+    if (!id || !attachmentFile) return;
+    if (attachmentFile.size > 8 * 1024 * 1024) {
+      setError('O anexo deve ter no máximo 8 MB.');
+      return;
+    }
+    try {
+      setSubmitting(true);
+      setError('');
+      const dataUrl = await attachmentFileToDataUrl(attachmentFile);
+      await api.post(`/hospitalizations/${id}/attachments`, {
+        fileName: attachmentFile.name,
+        mimeType: attachmentFile.type || 'application/octet-stream',
+        sizeBytes: attachmentFile.size,
+        dataUrl,
+        description: attachmentDescription.trim() || null,
+        category: attachmentCategory,
+        professionalId: attachmentProfessionalId || null,
+      });
+      setAttachmentModal(false);
+      setAttachmentFile(null);
+      setAttachmentDescription('');
+      setAttachmentCategory('EXAM');
+      setAttachmentProfessionalId('');
+      await load();
+    } catch (uploadError) {
+      setError(message(uploadError));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function removeAttachment(item: ClinicalAttachment) {
+    if (!id || !window.confirm(`Excluir o anexo “${item.fileName}”?`)) return;
+    try {
+      await api.delete(`/hospitalizations/${id}/attachments/${item.id}`);
+      await load();
+    } catch (removeError) {
+      setError(message(removeError));
+    }
+  }
+
+  function downloadAttachment(item: ClinicalAttachment) {
+    const anchor = document.createElement('a');
+    anchor.href = item.dataUrl;
+    anchor.download = item.fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  }
+
   if (loading) return <div className="timeline-skeleton"><div/><div/><div/></div>;
   if (error && !data) return <div className="form-error">{error}</div>;
   if (!data) return null;
@@ -225,12 +304,13 @@ export function HospitalizationTimelinePage() {
         </div>
         <div className="heading-actions">
           <button className="secondary-button button-with-icon" onClick={() => window.print()}><Printer />Imprimir</button>
+          <button className="secondary-button button-with-icon" onClick={() => setAttachmentModal(true)}><Paperclip />Anexar arquivo</button>
           {!h.dischargedAt && <button className="primary-button button-with-icon" onClick={openNew}><Plus />Novo registro</button>}
         </div>
       </div>
 
       <div className="timeline-print-header">
-        <strong>PetLife São Caetano</strong>
+        <strong>PetLife</strong>
         <span>Prontuário clínico • {h.animal.name}</span>
       </div>
 
@@ -247,6 +327,25 @@ export function HospitalizationTimelinePage() {
         <article><strong>{data.summary.procedures}</strong><span>Procedimentos</span></article>
         <article><strong>{data.summary.medicationDoses}</strong><span>Doses na timeline</span></article>
       </div>
+
+      {data.events.filter((event) => event.vitals && [event.vitals.temperature,event.vitals.heartRate,event.vitals.respiratoryRate,event.vitals.weight].some((value)=>value!=null)).length > 1 && (
+        <section className="panel vitals-trend-panel print-hidden">
+          <div className="panel-header"><div><h2>Evolução dos sinais vitais</h2><p>Comparação dos últimos registros da internação.</p></div></div>
+          <div className="vitals-trend-grid">
+            {[
+              ['Temperatura','temperature','°C'],
+              ['Freq. cardíaca','heartRate','bpm'],
+              ['Freq. respiratória','respiratoryRate','irpm'],
+              ['Peso','weight','kg']
+            ].map(([label,key,unit])=>{
+              const points=data.events.filter((event)=>(event.vitals as any)?.[key]!=null).slice(-8);
+              const values=points.map((event)=>Number((event.vitals as any)?.[key]??0));
+              const min=Math.min(...values),max=Math.max(...values),span=Math.max(1,max-min);
+              return <article key={key}><span>{label}</span>{values.length?<><strong>{values.at(-1)} {unit}</strong><div className="sparkline">{values.map((value,index)=><i key={index} style={{height:`${20+((value-min)/span)*60}%`}} title={`${value} ${unit}`}/>)}</div><small>{values.length} registro(s)</small></>:<small>Sem dados</small>}</article>
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="panel clinical-record-panel">
         <div className="panel-header">
@@ -305,6 +404,66 @@ export function HospitalizationTimelinePage() {
           })}
         </div>
       </section>
+
+      <section className="panel clinical-attachments-panel print-hidden">
+        <div className="panel-header">
+          <div><h2>Anexos clínicos</h2><p>Exames, imagens e documentos vinculados a esta internação.</p></div>
+          <button className="primary-button button-with-icon" onClick={() => setAttachmentModal(true)}><Upload />Novo anexo</button>
+        </div>
+        {attachments.length === 0 ? (
+          <div className="empty-state"><Paperclip size={40}/><h3>Nenhum anexo</h3><p>Adicione exames, imagens ou documentos ao prontuário.</p></div>
+        ) : (
+          <div className="clinical-attachment-grid">
+            {attachments.map((item) => (
+              <article className="clinical-attachment-card" key={item.id}>
+                <div className="attachment-preview">
+                  {item.mimeType.startsWith('image/') ? <img src={item.dataUrl} alt={item.fileName}/> : <FileText size={34}/>}
+                </div>
+                <div className="attachment-info">
+                  <strong title={item.fileName}>{item.fileName}</strong><em className="attachment-category">{({EXAM:'Exame',IMAGE:'Imagem',REPORT:'Laudo',PRESCRIPTION:'Receita',OTHER:'Outro'} as Record<string,string>)[item.category] ?? 'Outro'}</em>
+                  <span>{formatBytes(item.sizeBytes)} • {new Date(item.createdAt).toLocaleString('pt-BR')}</span>
+                  {item.description && <p>{item.description}</p>}
+                  <small>Responsável: {item.professionalName || 'Não informado'}</small>
+                </div>
+                <div className="attachment-actions">
+                  <button className="icon-button" title="Baixar" onClick={() => downloadAttachment(item)}><Download/></button>
+                  <button className="icon-button danger-icon" title="Excluir" onClick={() => void removeAttachment(item)}><Trash2/></button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {attachmentModal && (
+        <Modal title="Novo anexo clínico" subtitle={`Vincular arquivo ao prontuário de ${h.animal.name}.`} onClose={() => setAttachmentModal(false)} wide>
+          <form className="entity-form" onSubmit={submitAttachment}>
+            <div className="form-grid">
+              <label className="full attachment-drop-field">
+                Arquivo *
+                <input required type="file" accept="image/*,.pdf,.txt,.csv,.doc,.docx,.xls,.xlsx" onChange={(event) => setAttachmentFile(event.target.files?.[0] ?? null)}/>
+                <span><Upload/> {attachmentFile ? `${attachmentFile.name} • ${formatBytes(attachmentFile.size)}` : 'Selecione um arquivo de até 8 MB'}</span>
+              </label>
+              <label>Categoria
+                <select value={attachmentCategory} onChange={(event)=>setAttachmentCategory(event.target.value)}>
+                  <option value="EXAM">Exame</option><option value="IMAGE">Imagem</option><option value="REPORT">Laudo</option><option value="PRESCRIPTION">Receita</option><option value="OTHER">Outro</option>
+                </select>
+              </label>
+              <label>Profissional responsável
+                <select value={attachmentProfessionalId} onChange={(event) => setAttachmentProfessionalId(event.target.value)}>
+                  <option value="">Não informado</option>
+                  {professionals.map((professional) => <option key={professional.id} value={professional.id}>{professional.name}{professional.crmv ? ` • ${professional.crmv}` : ''}</option>)}
+                </select>
+              </label>
+              <label className="full">Descrição
+                <textarea rows={3} maxLength={500} placeholder="Ex.: Hemograma realizado na admissão." value={attachmentDescription} onChange={(event) => setAttachmentDescription(event.target.value)}/>
+              </label>
+            </div>
+            {error && <div className="form-error">{error}</div>}
+            <div className="form-footer"><button type="button" className="secondary-button" onClick={() => setAttachmentModal(false)}>Cancelar</button><button className="primary-button" disabled={submitting || !attachmentFile}>{submitting ? 'Enviando...' : 'Adicionar ao prontuário'}</button></div>
+          </form>
+        </Modal>
+      )}
 
       {modal && (
         <Modal title={editing ? 'Editar registro clínico' : 'Novo registro clínico'} subtitle="Adicione uma evolução, observação ou aferição de sinais vitais." onClose={() => setModal(false)} wide>

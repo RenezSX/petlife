@@ -7,7 +7,7 @@ export type DashboardMedicationAgenda={id:string;medication:string;dose:string|n
 export type DashboardTrend={date:string;label:string;admissions:number;discharges:number;procedures:number;medications:number};
 export type DashboardPriority={priority:string;total:number};
 export type DashboardActivity={id:string;type:'ADMISSION'|'DISCHARGE'|'PROCEDURE'|'MEDICATION'|'CLINICAL';title:string;description:string;patient:string;date:string;href:string};
-export type DashboardData={generatedAt:string;refreshIntervalSeconds:number;metrics:{hospitalized:number;critical:number;totalBeds:number;occupiedBeds:number;availableBeds:number;occupancyRate:number;pendingProcedures:number;overdueProcedures:number;pendingMedications:number;overdueMedications:number;administeredToday:number;expectedDischarges:number};sectors:DashboardSector[];priorityDistribution:DashboardPriority[];trends:DashboardTrend[];procedureStatus:{pending:number;overdue:number;completedToday:number};medicationStatus:{pending:number;overdue:number;administeredToday:number};alerts:DashboardAlert[];agenda:{procedures:DashboardProcedureAgenda[];medications:DashboardMedicationAgenda[]};activity:DashboardActivity[];recent:RecentHospitalization[]};
+export type DashboardData={generatedAt:string;executive:{finance:{income:number;expense:number;balance:number};inventory:{low:number;expired:number};preventives:{overdue:number;dueSoon:number}};refreshIntervalSeconds:number;metrics:{hospitalized:number;critical:number;totalBeds:number;occupiedBeds:number;availableBeds:number;occupancyRate:number;pendingProcedures:number;overdueProcedures:number;pendingMedications:number;overdueMedications:number;administeredToday:number;expectedDischarges:number};sectors:DashboardSector[];priorityDistribution:DashboardPriority[];trends:DashboardTrend[];procedureStatus:{pending:number;overdue:number;completedToday:number};medicationStatus:{pending:number;overdue:number;administeredToday:number};alerts:DashboardAlert[];agenda:{procedures:DashboardProcedureAgenda[];medications:DashboardMedicationAgenda[]};activity:DashboardActivity[];recent:RecentHospitalization[]};
 
 export type Professional={id:string;name:string;role:string;crmv:string|null;specialty:string|null;phone:string|null;email:string|null;notes:string|null;active:boolean;createdAt:string;updatedAt:string};
 export type ProfessionalOption={id:string;name:string;role:string;crmv:string|null;specialty:string|null};
@@ -25,8 +25,8 @@ export type Hospitalization={id:string;animalId:string;animal:Animal;bedId:strin
 export type HospitalizationStats={active:number;critical:number;dischargeExpected:number;totalBeds:number;occupiedBeds:number;availableBeds:number};
 export type ProcedureItem={id:string;hospitalizationId:string;title:string;description:string|null;status:string;responsible:string|null;professionalId:string|null;scheduledAt:string;completedAt:string|null;notes:string|null;hospitalization:{id:string;animal:Animal;bed:Bed|null}};
 export type ProcedureStats={today:number;pending:number;completed:number;overdue:number};
-export type MedicationDose={id:string;hospitalizationId:string;prescriptionId:string|null;medication:string;dose:string|null;unit:string|null;route:string|null;status:string;scheduledAt:string;administeredAt:string|null;administeredBy:string|null;administeredByProfessionalId:string|null;notes:string|null;hospitalization:{id:string;animal:Animal;bed:Bed|null}};
-export type MedicationPrescription={id:string;hospitalizationId:string;medication:string;dose:string;unit:string;route:string;frequencyHours:number;startAt:string;endAt:string|null;active:boolean;notes:string|null;responsible:string|null;professionalId:string|null;hospitalization:{id:string;animal:Animal;bed:Bed|null};doses:MedicationDose[]};
+export type MedicationDose={id:string;hospitalizationId:string;prescriptionId:string|null;medication:string;dose:string|null;unit:string|null;route:string|null;status:string;scheduledAt:string;administeredAt:string|null;administeredBy:string|null;administeredByProfessionalId:string|null;inventoryItemId:string|null;inventoryQuantity:number|null;inventoryItem?:InventoryItem|null;notes:string|null;hospitalization:{id:string;animal:Animal;bed:Bed|null}};
+export type MedicationPrescription={id:string;hospitalizationId:string;medication:string;dose:string;unit:string;route:string;frequencyHours:number;startAt:string;endAt:string|null;active:boolean;notes:string|null;responsible:string|null;professionalId:string|null;inventoryItemId:string|null;inventoryQuantity:number|null;inventoryItem?:InventoryItem|null;hospitalization:{id:string;animal:Animal;bed:Bed|null};doses:MedicationDose[]};
 export type MedicationStats={pending:number;overdue:number;next:number;administered:number};
 export type TimelineVitals={temperature:number|null;heartRate:number|null;respiratoryRate:number|null;weight:number|null};
 export type TimelineEvent={id:string;type:string;title:string;description:string|null;date:string;status:string;responsible?:string|null;professionalId?:string|null;editable?:boolean;vitals?:TimelineVitals|null};
@@ -35,7 +35,7 @@ export type GlobalSearchItem={id:string;type:'tutor'|'animal'|'hospitalization'|
 export type GlobalSearchGroup={key:string;label:string;items:GlobalSearchItem[]};
 export type GlobalSearchResponse={query:string;total:number;groups:GlobalSearchGroup[]};
 
-export type ReportType='hospitalizations'|'procedures'|'medications'|'animals'|'tutors'|'beds';
+export type ReportType='hospitalizations'|'procedures'|'medications'|'prescriptions'|'animals'|'tutors'|'beds'|'professionals'|'inventory'|'inventoryMovements'|'finance'|'preventives'|'clinicalEvents'|'attachments';
 export type ReportColumn={key:string;label:string};
 export type ReportRow=Record<string,string|number|null>;
 export type ReportData={type:ReportType;title:string;generatedAt:string;columns:ReportColumn[];rows:ReportRow[];summary:Record<string,string|number>};
@@ -43,3 +43,14 @@ export type ReportData={type:ReportType;title:string;generatedAt:string;columns:
 export type AuditItem={id:string;action:string;module:string;entity:string;entityId:string|null;description:string;actor:string;before:unknown;after:unknown;metadata:unknown;createdAt:string};
 export type AuditStats={total:number;today:number;created:number;updated:number;deleted:number};
 export type PaginatedAudit={items:AuditItem[];pagination:Pagination;filters:{modules:string[]}};
+
+export type ClinicalAttachment={id:string;animalId:string;hospitalizationId:string|null;professionalId:string|null;professionalName:string|null;fileName:string;mimeType:string;sizeBytes:number;dataUrl:string;description:string|null;category:'EXAM'|'IMAGE'|'REPORT'|'PRESCRIPTION'|'OTHER';createdAt:string};
+
+export type InventoryMovement={id:string;itemId:string;type:'IN'|'OUT'|'ADJUSTMENT';quantity:number;beforeQty:number;afterQty:number;reason:string;responsible:string|null;notes:string|null;createdAt:string};
+export type InventoryItem={id:string;name:string;category:'MEDICATION'|'SUPPLY'|'FOOD'|'HYGIENE'|'OTHER';unit:string;currentQuantity:number;minimumQuantity:number;batch:string|null;expiryDate:string|null;supplier:string|null;location:string|null;notes:string|null;active:boolean;createdAt:string;updatedAt:string;movements?:InventoryMovement[]};
+export type InventoryStats={total:number;low:number;zero:number;expiring:number;expired:number};
+
+export type FinancialEntry={id:string;type:'INCOME'|'EXPENSE';description:string;category:string;amount:number;status:'PAID'|'PENDING'|'CANCELED';paymentMethod:string|null;occurredAt:string;dueAt:string|null;paidAt:string|null;animalId:string|null;hospitalizationId:string|null;animal?:Animal|null;notes:string|null;createdAt:string;updatedAt:string};
+export type FinanceStats={month:string;income:number;expense:number;balance:number;pending:number;total:number};
+export type PreventiveRecord={id:string;animalId:string;type:'VACCINE'|'DEWORMING'|'ANTIPARASITIC'|'OTHER';name:string;manufacturer:string|null;batch:string|null;appliedAt:string;nextDueAt:string|null;professionalId:string|null;responsible:string|null;notes:string|null;animal:Animal;createdAt:string;updatedAt:string};
+export type PreventiveStats={total:number;overdue:number;dueSoon:number};

@@ -15,6 +15,10 @@ import { AuditPage } from './pages/AuditPage';
 import { ProfessionalsPage } from './pages/ProfessionalsPage';
 import { AgendaPage } from './pages/AgendaPage';
 import { DocumentsPage } from './pages/DocumentsPage';
+import { IdentificationPage } from './pages/IdentificationPage';
+import { InventoryPage } from './pages/InventoryPage';
+import { FinancePage } from './pages/FinancePage';
+import { PreventivesPage } from './pages/PreventivesPage';
 
 export default function App() {
   return (
@@ -29,6 +33,7 @@ export default function App() {
           <Route path="/documentos" element={<DocumentsPage />} />
           <Route path="/tutores" element={<TutorsPage />} />
           <Route path="/animais" element={<AnimalsPage />} />
+          <Route path="/identificar" element={<IdentificationPage />} />
 
           <Route path="/internacoes" element={<HospitalizationsPage />} />
           <Route path="/internacoes/:id" element={<HospitalizationTimelinePage />} />
@@ -36,6 +41,10 @@ export default function App() {
           <Route path="/procedimentos" element={<ProceduresPage />} />
 
           <Route path="/medicacoes" element={<MedicationsPage />} />
+
+          <Route path="/estoque" element={<InventoryPage />} />
+          <Route path="/financeiro" element={<FinancePage />} />
+          <Route path="/preventivos" element={<PreventivesPage />} />
 
           <Route path="/leitos" element={<BedsPage />} />
 

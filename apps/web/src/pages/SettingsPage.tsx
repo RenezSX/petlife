@@ -96,7 +96,7 @@ function EditableList({ title, description, values, onChange }: EditableListProp
 }
 
 const blank: Omit<ClinicSettings, 'id'> = {
-  name: 'PetLife São Caetano', legalName: '', cnpj: '', phone: '', whatsapp: '', email: '', address: '', city: '', state: '', zipCode: '', logoDataUrl: '',
+  name: 'PetLife', legalName: '', cnpj: '', phone: '', whatsapp: '', email: '', address: '', city: '', state: '', zipCode: '', logoDataUrl: '',
   openingHours: 'Atendimento 24 horas', sectors: [], priorities: [], species: [], medicationRoutes: [], theme: 'light', tagline: 'Cuidando com amor, tratando com excelência.',
 };
 

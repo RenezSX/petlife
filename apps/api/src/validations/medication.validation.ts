@@ -11,12 +11,16 @@ export const prescriptionBodySchema = z.object({
   endAt: z.string().datetime().optional().or(z.literal('')),
   notes: z.string().trim().optional().default(''),
   professionalId: z.string().trim().optional().default(''),
+  inventoryItemId: z.string().trim().optional().default(''),
+  inventoryQuantity: z.coerce.number().positive('Informe um consumo maior que zero.').optional(),
 });
 
 export const administrationBodySchema = z.object({
   status: z.enum(['ADMINISTERED', 'NOT_ADMINISTERED', 'REFUSED']),
   administeredBy: z.string().trim().optional().default(''),
   professionalId: z.string().trim().optional().default(''),
+  inventoryItemId: z.string().trim().optional().default(''),
+  inventoryQuantity: z.coerce.number().positive('Informe um consumo maior que zero.').optional(),
   notes: z.string().trim().optional().default(''),
 }).refine((data) => Boolean(data.professionalId || data.administeredBy.trim()), {
   message: 'Selecione o profissional responsável.',

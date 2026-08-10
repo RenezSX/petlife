@@ -13,6 +13,11 @@ async function main() {
   }
 
   const result = await prisma.$transaction(async (tx) => {
+    const financialEntries = await tx.financialEntry.deleteMany();
+    const preventiveRecords = await tx.preventiveRecord.deleteMany();
+    const inventoryMovements = await tx.inventoryMovement.deleteMany();
+    const inventoryItems = await tx.inventoryItem.deleteMany();
+    const clinicalAttachments = await tx.clinicalAttachment.deleteMany();
     const clinicalEvents = await tx.clinicalEvent.deleteMany();
     const medicationDoses = await tx.medicationDose.deleteMany();
     const prescriptions = await tx.medicationPrescription.deleteMany();
@@ -26,6 +31,11 @@ async function main() {
     const users = await tx.user.deleteMany();
 
     return {
+      financialEntries: financialEntries.count,
+      preventiveRecords: preventiveRecords.count,
+      inventoryMovements: inventoryMovements.count,
+      inventoryItems: inventoryItems.count,
+      clinicalAttachments: clinicalAttachments.count,
       clinicalEvents: clinicalEvents.count,
       medicationDoses: medicationDoses.count,
       prescriptions: prescriptions.count,

@@ -23,7 +23,7 @@ type SettingsInput = {
 
 const defaults = {
   id: 'clinic',
-  name: 'PetLife São Caetano',
+  name: 'PetLife',
   openingHours: 'Atendimento 24 horas',
   sectorsJson: JSON.stringify(['Internação', 'UTI', 'Observação', 'Isolamento']),
   prioritiesJson: JSON.stringify(['NORMAL', 'HIGH', 'CRITICAL']),
