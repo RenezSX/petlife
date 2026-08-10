@@ -214,7 +214,7 @@ export async function globalSearch(rawQuery: string) {
     {
       key: 'professionals',
       label: 'Profissionais',
-      items: professionals.map((item) => ({
+      items: professionals.map((item): GlobalSearchItem => ({
         id: item.id,
         type: 'professional',
         title: item.name,

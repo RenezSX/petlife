@@ -1,4 +1,5 @@
 import { prisma } from '../config/prisma.js';
+import type { Prisma } from '@prisma/client';
 import { AppError } from '../utils/app-error.js';
 
 const BACKUP_VERSION = '3.9.0';
@@ -210,7 +211,7 @@ export async function restoreBackup(input: unknown, originalFileName?: string) {
 
 
 
-  await prisma.$transaction(async (tx: typeof prisma) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.financialEntry.deleteMany();
     await tx.preventiveRecord.deleteMany();
     await tx.inventoryMovement.deleteMany();
